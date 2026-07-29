@@ -1,0 +1,234 @@
+[
+  {
+    "category": "JavaScript",
+    "difficulty": "easy",
+    "qtype": "theory",
+    "question": "What's the difference between let, const and var?",
+    "answer_hints": "var: function-scoped, hoisted (initialized undefined), redeclarable. let/const: block-scoped, temporal dead zone. const: binding can't be reassigned (object contents still mutable).",
+    "follow_ups": ["Does const make an object immutable? (No — binding only)"]
+  },
+  {
+    "category": "JavaScript",
+    "difficulty": "easy",
+    "qtype": "theory",
+    "question": "Explain == vs ===. Give an example where they differ.",
+    "answer_hints": "=== strict, no coercion. == coerces types (0 == '', null == undefined, 1 == '1'). Prefer ===. Mention NaN !== NaN.",
+    "follow_ups": ["What does null == undefined return, and null === undefined?"]
+  },
+  {
+    "category": "JavaScript",
+    "difficulty": "easy",
+    "qtype": "theory",
+    "question": "What are truthy and falsy values? List the falsy values.",
+    "answer_hints": "Falsy: false, 0, -0, 0n, \"\", null, undefined, NaN. Everything else truthy (including [], {}, '0', 'false').",
+    "follow_ups": ["Why is [] truthy but == false is true? (coercion rules)"]
+  },
+  {
+    "category": "JavaScript",
+    "difficulty": "easy",
+    "qtype": "practical",
+    "question": "How do you copy an array and an object without mutating the original? Shallow vs deep?",
+    "answer_hints": "Shallow: spread [...arr], {...obj}, Object.assign, slice. Deep: structuredClone (modern), JSON.parse(JSON.stringify) with caveats (loses functions/dates/undefined).",
+    "follow_ups": ["What breaks with JSON.parse(JSON.stringify) deep clone?"]
+  },
+  {
+    "category": "JavaScript",
+    "difficulty": "easy",
+    "qtype": "theory",
+    "question": "What is the difference between map, forEach, filter and reduce?",
+    "answer_hints": "map: transform → new array. forEach: side effects, returns undefined. filter: subset by predicate. reduce: fold to any single value. map/filter/reduce are pure/chainable.",
+    "follow_ups": ["When would you avoid chaining map().filter() for performance?"]
+  },
+  {
+    "category": "JavaScript",
+    "difficulty": "easy",
+    "qtype": "theory",
+    "question": "What does 'this' refer to in different contexts?",
+    "answer_hints": "Depends on call site: method call → object; plain call → undefined (strict)/global; arrow → lexical enclosing; new → new instance; call/apply/bind → explicit. Arrow functions don't have own this.",
+    "follow_ups": ["Why do arrow functions help in callbacks/event handlers?"]
+  },
+  {
+    "category": "JavaScript",
+    "difficulty": "easy",
+    "qtype": "debugging",
+    "question": "A for loop with var and setTimeout logs the same final number N times. Why, and how do you fix it?",
+    "answer_hints": "var is function-scoped — all closures share one i (final value). Fixes: let (block-scoped, new binding per iteration), or IIFE capturing the value.",
+    "follow_ups": ["Exactly why does let create a fresh binding each iteration?"]
+  },
+  {
+    "category": "JavaScript",
+    "difficulty": "easy",
+    "qtype": "practical",
+    "question": "How do you handle a promise that might reject? Show try/catch with async/await and .catch().",
+    "answer_hints": "async/await: wrap in try/catch. Promise chain: .then().catch(). Unhandled rejections crash/warn. Mention finally for cleanup.",
+    "follow_ups": ["What's the difference between Promise.all and Promise.allSettled for error handling?"]
+  },
+  {
+    "category": "JavaScript",
+    "difficulty": "easy",
+    "qtype": "theory",
+    "question": "What is the difference between null and undefined?",
+    "answer_hints": "undefined: variable declared not assigned, missing property, no return. null: intentional 'no value' assigned by developer. typeof null === 'object' (legacy bug); typeof undefined === 'undefined'.",
+    "follow_ups": ["What does the ?? operator do differently from ||?"]
+  },
+  {
+    "category": "JavaScript",
+    "difficulty": "easy",
+    "qtype": "practical",
+    "question": "Given an array of user objects, get a unique list of their city names sorted alphabetically. How?",
+    "answer_hints": "[...new Set(users.map(u => u.city))].sort(). Discuss Set for dedupe, map for extraction, sort default (lexicographic) vs comparator.",
+    "follow_ups": ["Why does [3,10,1].sort() give wrong numeric order?"]
+  },
+  {
+    "category": "JavaScript",
+    "difficulty": "medium",
+    "qtype": "theory",
+    "question": "Explain closures. Give a real use case beyond the classic counter.",
+    "answer_hints": "Function retains access to its lexical scope after outer returns. Uses: data privacy/encapsulation, memoization, event handlers with state, currying, module pattern, once() functions.",
+    "follow_ups": ["What memory concern can closures introduce? (retaining large scopes)"]
+  },
+  {
+    "category": "JavaScript",
+    "difficulty": "medium",
+    "qtype": "theory",
+    "question": "Walk through the event loop: call stack, task queue, microtask queue. Predict the output order of a snippet mixing setTimeout and Promise.then.",
+    "answer_hints": "Sync stack runs to empty → all microtasks (promises, queueMicrotask) drain → one macrotask (timer/IO) → microtasks again. So Promise.then logs before setTimeout(0).",
+    "follow_ups": ["Where do requestAnimationFrame and await fit in?"]
+  },
+  {
+    "category": "JavaScript",
+    "difficulty": "medium",
+    "qtype": "practical",
+    "question": "Implement a debounce function. How does it differ from throttle?",
+    "answer_hints": "Debounce: delay execution until N ms after last call (clearTimeout each call) — good for search input. Throttle: at most once per N ms — good for scroll/resize. Consider leading/trailing options.",
+    "follow_ups": ["How would you make debounce cancelable and support a leading edge?"]
+  },
+  {
+    "category": "JavaScript",
+    "difficulty": "medium",
+    "qtype": "theory",
+    "question": "Explain prototypal inheritance. How does the prototype chain resolve a property lookup?",
+    "answer_hints": "Objects link via [[Prototype]] (__proto__); lookup walks the chain until found or null. class is sugar over prototypes. Object.create, hasOwnProperty to distinguish own vs inherited.",
+    "follow_ups": ["What's the difference between __proto__ and prototype?"]
+  },
+  {
+    "category": "JavaScript",
+    "difficulty": "medium",
+    "qtype": "debugging",
+    "question": "An object method loses 'this' when passed as a callback (e.g., to setTimeout or an event listener). Show three ways to fix it.",
+    "answer_hints": "bind(this), arrow wrapper () => obj.method(), or define method as arrow/class field. Explain why the reference detaches from the object.",
+    "follow_ups": ["Trade-offs of class fields (arrow methods) vs prototype methods? (per-instance memory, no super)"]
+  },
+  {
+    "category": "JavaScript",
+    "difficulty": "medium",
+    "qtype": "practical",
+    "question": "You need to fetch from three endpoints; two can run in parallel, the third depends on the first. Write the control flow and handle errors.",
+    "answer_hints": "await first; then Promise.all([second-independent, third-derived]) — or start independent early and await later. try/catch, consider Promise.allSettled if partial failure is acceptable. Avoid serial awaits that don't depend.",
+    "follow_ups": ["What's the anti-pattern of awaiting inside a loop when calls are independent?"]
+  },
+  {
+    "category": "JavaScript",
+    "difficulty": "medium",
+    "qtype": "theory",
+    "question": "What are generators and iterators? Show a use case.",
+    "answer_hints": "Iterator: object with next() → {value, done}. Generator: function* with yield, pauses/resumes, lazy sequences, infinite streams, custom iteration (Symbol.iterator), cooperative flows. for...of consumes iterables.",
+    "follow_ups": ["How do async generators and for await...of work?"]
+  },
+  {
+    "category": "JavaScript",
+    "difficulty": "medium",
+    "qtype": "situational",
+    "question": "A search-as-you-type feature fires a request per keystroke and results arrive out of order, showing stale data. How do you fix it?",
+    "answer_hints": "Debounce input; cancel in-flight requests (AbortController); or guard by tracking the latest request id/token and ignoring stale responses. Discuss race conditions and cleanup.",
+    "follow_ups": ["How does AbortController integrate with fetch and why is it better than ignoring results?"]
+  },
+  {
+    "category": "JavaScript",
+    "difficulty": "medium",
+    "qtype": "theory",
+    "question": "Explain how JavaScript handles numbers. Why is 0.1 + 0.2 !== 0.3?",
+    "answer_hints": "IEEE-754 double precision floating point — 0.1/0.2 aren't exactly representable in binary. Compare with epsilon or work in integers/cents; BigInt for large integers. Number.MAX_SAFE_INTEGER limits.",
+    "follow_ups": ["When would you reach for BigInt?"]
+  },
+  {
+    "category": "JavaScript",
+    "difficulty": "medium",
+    "qtype": "practical",
+    "question": "Implement a simple event emitter (on, off, emit). What edge cases matter?",
+    "answer_hints": "Map of event → Set/array of listeners; on adds, off removes, emit iterates a copy (so removal during emit is safe). Edge cases: once, error in one listener not blocking others, memory leaks from unremoved listeners.",
+    "follow_ups": ["Why iterate a copy of the listeners array in emit?"]
+  },
+  {
+    "category": "JavaScript",
+    "difficulty": "hard",
+    "qtype": "theory",
+    "question": "Explain how garbage collection works in V8. What causes memory leaks in a long-running SPA?",
+    "answer_hints": "Reachability from roots; mark-and-sweep, generational (young/old). Leaks: forgotten timers/listeners, detached DOM held by closures, growing caches/maps, global refs. WeakMap/WeakRef for non-owning refs.",
+    "follow_ups": ["When would you use WeakMap over Map to avoid leaks?"]
+  },
+  {
+    "category": "JavaScript",
+    "difficulty": "hard",
+    "qtype": "practical",
+    "question": "Implement Promise.all from scratch, preserving order and rejecting on first failure.",
+    "answer_hints": "Return new Promise; track a results array by index and a completed counter; resolve when count === length; reject immediately on any rejection; handle empty input; wrap non-promises with Promise.resolve.",
+    "follow_ups": ["How would you change it to implement allSettled?"]
+  },
+  {
+    "category": "JavaScript",
+    "difficulty": "hard",
+    "qtype": "architectural",
+    "question": "You must run heavy computation (image processing) in the browser without freezing the UI. Design the solution.",
+    "answer_hints": "Web Workers for off-main-thread; transferable objects/ArrayBuffer to avoid copy cost; OffscreenCanvas; chunking with progress; consider WASM for hot loops; message protocol, error handling, worker pool for parallelism.",
+    "follow_ups": ["What's the difference between structured clone and transferables in postMessage?"]
+  },
+  {
+    "category": "JavaScript",
+    "difficulty": "hard",
+    "qtype": "debugging",
+    "question": "Users report the app gets progressively slower and eventually crashes a tab after navigating between views for a while. How do you diagnose and fix?",
+    "answer_hints": "Memory profiler: take heap snapshots, compare, look for detached DOM/growing retainers. Common causes: listeners/timers/subscriptions not cleaned up, closures retaining old view state, unbounded caches. Fix cleanup in teardown.",
+    "follow_ups": ["How do you read a heap snapshot's retainers to find the leak source?"]
+  },
+  {
+    "category": "JavaScript",
+    "difficulty": "hard",
+    "qtype": "theory",
+    "question": "Explain the module systems: CommonJS vs ES modules. How do they differ in loading, binding and tree-shaking?",
+    "answer_hints": "CJS: synchronous require, dynamic, value copy, runtime. ESM: static import/export, async graph, live bindings, hoisted, enables tree-shaking & top-level await. Interop pitfalls (default, __esModule).",
+    "follow_ups": ["Why can ESM be statically tree-shaken but CommonJS generally can't?"]
+  },
+  {
+    "category": "JavaScript",
+    "difficulty": "hard",
+    "qtype": "practical",
+    "question": "Implement a memoize function that works for functions with multiple arguments and supports a cache size limit (LRU).",
+    "answer_hints": "Key from args (careful with objects — reference vs serialize). LRU via Map (insertion order): on hit, delete+reset; on overflow, delete oldest (first key). Discuss cache invalidation and WeakMap for object keys.",
+    "follow_ups": ["Why is Map insertion order useful for a simple LRU?"]
+  },
+  {
+    "category": "JavaScript",
+    "difficulty": "hard",
+    "qtype": "situational",
+    "question": "A third-party script on your page occasionally throws and breaks your app's error tracking with noise. How do you isolate its failures and protect your app?",
+    "answer_hints": "Load in iframe/worker or sandbox; wrap in try/catch where you invoke it; global error handler filtering by source; Subresource Integrity, CSP; async loading with timeouts; graceful degradation if it fails.",
+    "follow_ups": ["How does window.onerror expose script origin and why is it sometimes 'Script error.'? (CORS)"]
+  },
+  {
+    "category": "JavaScript",
+    "difficulty": "hard",
+    "qtype": "theory",
+    "question": "Explain how async/await is implemented on top of promises and generators. What does 'await' actually do to the function?",
+    "answer_hints": "async function returns a promise; await suspends, schedules continuation as a microtask when awaited promise settles, resumes with value or throws. Conceptually a generator driven by a runner. Doesn't block the thread.",
+    "follow_ups": ["Does await inside a loop create sequential or parallel execution, and why?"]
+  },
+  {
+    "category": "JavaScript",
+    "difficulty": "hard",
+    "qtype": "architectural",
+    "question": "Design a client-side data-sync layer for an offline-capable app: local cache, optimistic updates, and conflict resolution with the server.",
+    "answer_hints": "IndexedDB for storage, queue of pending mutations, optimistic UI + rollback on failure, sync on reconnect (online event/Background Sync), conflict strategy (last-write-wins, versioning/vector clocks, server merge), idempotency keys.",
+    "follow_ups": ["How would you guarantee a mutation isn't applied twice after a retry?"]
+  }
+]

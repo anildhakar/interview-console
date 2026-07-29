@@ -1,0 +1,234 @@
+[
+  {
+    "category": "CSS",
+    "difficulty": "easy",
+    "qtype": "theory",
+    "question": "Explain the CSS box model. What does box-sizing: border-box change?",
+    "answer_hints": "content + padding + border + margin. Default (content-box): width applies to content only. border-box: width includes padding+border — predictable sizing, common global reset.",
+    "follow_ups": ["Do margins ever collapse? When?"]
+  },
+  {
+    "category": "CSS",
+    "difficulty": "easy",
+    "qtype": "theory",
+    "question": "What's the difference between margin and padding? When does margin collapsing happen?",
+    "answer_hints": "Padding is inside the border (part of element's background); margin is outside. Vertical margins of adjacent block siblings and parent/first-child collapse to the larger value; not in flex/grid.",
+    "follow_ups": ["How do you stop parent-child margin collapse? (padding/border on parent, display: flow-root)"]
+  },
+  {
+    "category": "CSS",
+    "difficulty": "easy",
+    "qtype": "theory",
+    "question": "Explain CSS specificity. Which wins: a class, an id, or an inline style?",
+    "answer_hints": "inline > id > class/attribute/pseudo-class > element. Ties broken by source order. !important overrides all (and !important battles are resolved by specificity again).",
+    "follow_ups": ["Where does :where() fit in? (zero specificity)"]
+  },
+  {
+    "category": "CSS",
+    "difficulty": "easy",
+    "qtype": "practical",
+    "question": "Center a div horizontally and vertically inside its parent — give at least two ways.",
+    "answer_hints": "Flex: display:flex; align-items:center; justify-content:center. Grid: display:grid; place-items:center. Absolute + transform: top/left 50% + translate(-50%,-50%). Margin auto with fixed size.",
+    "follow_ups": ["Which method would you avoid today and why?"]
+  },
+  {
+    "category": "CSS",
+    "difficulty": "easy",
+    "qtype": "theory",
+    "question": "What's the difference between position: relative, absolute, fixed and sticky?",
+    "answer_hints": "relative: offset from normal position, keeps space. absolute: removed from flow, positioned vs nearest positioned ancestor. fixed: vs viewport. sticky: relative until scroll threshold, then sticks within parent.",
+    "follow_ups": ["Why might position: sticky silently not work? (overflow on ancestor, no threshold, parent height)"]
+  },
+  {
+    "category": "CSS",
+    "difficulty": "easy",
+    "qtype": "practical",
+    "question": "How do you make a layout with a fixed sidebar (240px) and a fluid content area?",
+    "answer_hints": "Grid: grid-template-columns: 240px 1fr (cleanest). Flex: sidebar flex: 0 0 240px, content flex: 1 with min-width: 0 to allow shrinking.",
+    "follow_ups": ["Why is min-width: 0 sometimes needed on flex children?"]
+  },
+  {
+    "category": "CSS",
+    "difficulty": "easy",
+    "qtype": "theory",
+    "question": "What is the difference between em, rem, %, vw and px units? When do you use which?",
+    "answer_hints": "px absolute; em relative to element's font-size (compounds); rem relative to root (predictable, good for type/spacing); % relative to parent; vw/vh viewport. rem respects user font-size settings — accessibility.",
+    "follow_ups": ["Why prefer rem over px for font sizes?"]
+  },
+  {
+    "category": "CSS",
+    "difficulty": "easy",
+    "qtype": "debugging",
+    "question": "An element has display: inline and its width/height/margin-top aren't applying. Why?",
+    "answer_hints": "Inline elements ignore width/height and vertical margins; padding applies visually but doesn't push lines. Fix: inline-block or block.",
+    "follow_ups": ["What's the difference between inline-block and block?"]
+  },
+  {
+    "category": "CSS",
+    "difficulty": "easy",
+    "qtype": "theory",
+    "question": "What are pseudo-classes and pseudo-elements? Give examples of each.",
+    "answer_hints": "Pseudo-classes select states (:hover, :focus, :nth-child, :not); pseudo-elements create/target sub-parts (::before, ::after, ::placeholder, ::selection). Single vs double colon.",
+    "follow_ups": ["What do you need on ::before for it to render? (content property)"]
+  },
+  {
+    "category": "CSS",
+    "difficulty": "easy",
+    "qtype": "practical",
+    "question": "How do you apply styles only on screens narrower than 768px? What is mobile-first CSS?",
+    "answer_hints": "@media (max-width: 768px). Mobile-first: base styles for small screens, layer min-width queries upward. Mention the newer range syntax (width <= 768px).",
+    "follow_ups": ["Besides width, what else can media queries target? (prefers-color-scheme, prefers-reduced-motion, hover/pointer)"]
+  },
+  {
+    "category": "CSS",
+    "difficulty": "medium",
+    "qtype": "theory",
+    "question": "Explain stacking contexts. Why does z-index: 9999 sometimes fail to bring an element on top?",
+    "answer_hints": "z-index only competes within the same stacking context. New contexts from: positioned + z-index, opacity < 1, transform, filter, will-change, fixed/sticky, isolation. A parent's context caps children.",
+    "follow_ups": ["How would you debug which ancestor creates the trapping stacking context?"]
+  },
+  {
+    "category": "CSS",
+    "difficulty": "medium",
+    "qtype": "practical",
+    "question": "Build a responsive card grid: as many 250px-minimum columns as fit, cards stretch to fill. One rule.",
+    "answer_hints": "grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)). Know auto-fill vs auto-fit difference (empty tracks collapse with auto-fit).",
+    "follow_ups": ["When does minmax(250px, 1fr) overflow and how do you guard it? (min(250px, 100%))"]
+  },
+  {
+    "category": "CSS",
+    "difficulty": "medium",
+    "qtype": "theory",
+    "question": "Flexbox: explain flex-grow, flex-shrink and flex-basis. What does flex: 1 actually set?",
+    "answer_hints": "basis = starting size; grow = share of extra space; shrink = how it gives up space (weighted by size). flex:1 → 1 1 0% — equal columns regardless of content. flex:auto → 1 1 auto — content-influenced.",
+    "follow_ups": ["Difference between flex: 1 and flex: auto in a nav with different-length labels?"]
+  },
+  {
+    "category": "CSS",
+    "difficulty": "medium",
+    "qtype": "debugging",
+    "question": "Text in a flex child refuses to truncate with ellipsis — the child just overflows. The truncation CSS is correct. What's wrong?",
+    "answer_hints": "Flex items have min-width: auto — they won't shrink below content. Fix: min-width: 0 (or overflow: hidden) on the flex child chain. Same applies in grid with min-content sizing.",
+    "follow_ups": ["Explain why min-width: auto is the default for flex items."]
+  },
+  {
+    "category": "CSS",
+    "difficulty": "medium",
+    "qtype": "theory",
+    "question": "How does CSS inheritance work? Which properties inherit and how do inherit/initial/unset/revert differ?",
+    "answer_hints": "Text-related properties inherit (color, font, line-height); box properties don't. inherit forces parent value; initial = spec default; unset = inherit if inheritable else initial; revert = browser stylesheet value.",
+    "follow_ups": ["What does all: unset do and when is it useful?"]
+  },
+  {
+    "category": "CSS",
+    "difficulty": "medium",
+    "qtype": "practical",
+    "question": "Implement a dark mode. Compare media-query-only vs class/attribute toggle approaches.",
+    "answer_hints": "Design tokens as custom properties; prefers-color-scheme for default, data-theme/class override for user choice; store preference; color-scheme property for native controls; avoid FOUC with inline script.",
+    "follow_ups": ["How do you prevent the flash of wrong theme on first paint?"]
+  },
+  {
+    "category": "CSS",
+    "difficulty": "medium",
+    "qtype": "situational",
+    "question": "Your team's CSS has grown unmaintainable — overrides fighting overrides, !important everywhere. How do you dig out?",
+    "answer_hints": "Look for a strategy: audit, pick a methodology (BEM/utility/CSS modules/scoped), design tokens, layers (@layer) to control cascade, lint rules, migrate incrementally per component, delete dead CSS with coverage tooling.",
+    "follow_ups": ["How does @layer help with third-party or legacy CSS?"]
+  },
+  {
+    "category": "CSS",
+    "difficulty": "medium",
+    "qtype": "theory",
+    "question": "What triggers layout (reflow) vs paint vs composite? Why do we animate transform and opacity?",
+    "answer_hints": "Geometry changes (width/top/font-size) → layout+paint+composite. Visual-only (color, shadow) → paint. transform/opacity can be composite-only on their own layer — no layout/paint, GPU-friendly, off-main-thread.",
+    "follow_ups": ["What's the cost of promoting too many layers with will-change?"]
+  },
+  {
+    "category": "CSS",
+    "difficulty": "medium",
+    "qtype": "practical",
+    "question": "Create a sticky table header and a sticky first column on the same table. What are the gotchas?",
+    "answer_hints": "th { position: sticky; top: 0 } and first column left: 0; needs z-index for the corner cell (sticky both ways), background to cover scrolled content, overflow container, border rendering quirks with border-collapse.",
+    "follow_ups": ["Why do borders disappear when sticky headers scroll, and a fix? (border-collapse: separate + box-shadow)"]
+  },
+  {
+    "category": "CSS",
+    "difficulty": "medium",
+    "qtype": "theory",
+    "question": "What are CSS custom properties and how do they differ from preprocessor variables?",
+    "answer_hints": "Live in the cascade, inherit, can change at runtime (media queries, JS, per-component themes); Sass vars compile away. Enable theming, component APIs. var() fallbacks; @property for typed/animatable.",
+    "follow_ups": ["How would you expose a themeable API from a web component using custom properties?"]
+  },
+  {
+    "category": "CSS",
+    "difficulty": "hard",
+    "qtype": "theory",
+    "question": "Explain the full CSS cascade algorithm in order: what factors decide the winning declaration?",
+    "answer_hints": "Origin & importance (user-agent < user < author < author !important < user !important), then cascade layers, then specificity, then order of appearance. Scope/proximity and style attribute fit in modern spec.",
+    "follow_ups": ["How does !important invert layer order?"]
+  },
+  {
+    "category": "CSS",
+    "difficulty": "hard",
+    "qtype": "architectural",
+    "question": "Design the CSS architecture for a large multi-team design system. How do you handle tokens, theming, component styles and consumer overrides?",
+    "answer_hints": "Token layers (primitive → semantic → component) as custom properties; @layer for predictable override points; component encapsulation (CSS modules/shadow DOM); documented override API; versioning; avoid deep selectors; RTL/logical properties.",
+    "follow_ups": ["How do you ship a theme switch without shipping duplicate CSS?"]
+  },
+  {
+    "category": "CSS",
+    "difficulty": "hard",
+    "qtype": "practical",
+    "question": "Implement a container-driven responsive component: a card that switches from vertical to horizontal layout based on its own width, not the viewport.",
+    "answer_hints": "Container queries: container-type: inline-size on wrapper, @container (min-width: 400px) rules. Mention container units (cqw/cqi) and fallback strategies (flex-wrap tricks) for older browsers.",
+    "follow_ups": ["Why can't a container query target the container itself?"]
+  },
+  {
+    "category": "CSS",
+    "difficulty": "hard",
+    "qtype": "debugging",
+    "question": "A fixed-position modal is mysteriously positioned relative to a card, not the viewport, and clipped. What causes this and how do you fix it?",
+    "answer_hints": "An ancestor with transform/filter/will-change/contain becomes the containing block for fixed descendants. Find it via DevTools; fix by removing the property or portaling the modal to body (or top-layer via <dialog>/popover).",
+    "follow_ups": ["How does the native dialog top layer avoid this whole class of bugs?"]
+  },
+  {
+    "category": "CSS",
+    "difficulty": "hard",
+    "qtype": "theory",
+    "question": "How does the browser resolve percentage values? Why does height: 100% often not work while width: 100% does?",
+    "answer_hints": "Percentages resolve against containing block's corresponding dimension. Width of blocks is definite; height is auto (content-driven) — % height needs a definite ancestor height chain, or use flex/grid/vh/dvh.",
+    "follow_ups": ["What's the difference between vh, svh, lvh and dvh on mobile?"]
+  },
+  {
+    "category": "CSS",
+    "difficulty": "hard",
+    "qtype": "situational",
+    "question": "Designers ship a complex animated landing page; on mid-range phones it stutters badly. Walk through your optimization process.",
+    "answer_hints": "Profile first (Performance panel, frame chart). Move animations to transform/opacity, remove layout thrash, reduce paint areas/layer explosions, IntersectionObserver to pause offscreen, prefers-reduced-motion, test on real device/CPU throttle.",
+    "follow_ups": ["When would you choose Web Animations API or scroll-driven animations over JS rAF loops?"]
+  },
+  {
+    "category": "CSS",
+    "difficulty": "hard",
+    "qtype": "practical",
+    "question": "Build a masonry-style layout. Compare the approaches available today and their trade-offs.",
+    "answer_hints": "columns (CSS multicol — items split by column, order top-to-bottom per column, no true control), grid with dense packing (row spans, needs measuring), JS libraries (measure + absolute), native grid masonry (limited support). Discuss order/a11y implications.",
+    "follow_ups": ["How does column-based masonry hurt tab order and reading order?"]
+  },
+  {
+    "category": "CSS",
+    "difficulty": "hard",
+    "qtype": "theory",
+    "question": "Explain :has() — how does it change what CSS can do, and what are its performance considerations?",
+    "answer_hints": "Parent/ancestor and previous-sibling selection (style form when input invalid, card when it contains an image). Engine must re-evaluate on subtree changes — avoid huge unqualified :has(); combine with scoping.",
+    "follow_ups": ["Give a practical component you can now build without JS using :has()."]
+  },
+  {
+    "category": "CSS",
+    "difficulty": "hard",
+    "qtype": "architectural",
+    "question": "Your app must support RTL languages and vertical writing modes. How do you architect styles so this isn't a rewrite?",
+    "answer_hints": "Logical properties everywhere (margin-inline-start, inset-inline, padding-block), avoid left/right in names/values, dir attribute + :dir(), logical values for text-align (start/end), icon mirroring policy, test with dir=rtl early.",
+    "follow_ups": ["Which properties have no logical equivalent and need manual handling? (transforms, shadows, background-position)"]
+  }
+]

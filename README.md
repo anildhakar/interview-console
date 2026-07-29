@@ -1,36 +1,101 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Interview Console
 
-## Getting Started
+An internal tool for running and scoring technical interviews. Interviewers browse
+a categorized question bank during a live interview, log only the questions they
+actually ask (each scored 0–5), rate soft skills, and hand candidates off to
+teammates for the next round. HR tracks the whole pipeline and can share a
+read-only report link publicly.
 
-First, run the development server:
+Built as a single Next.js app — no separate backend. Data lives in a local SQLite
+file and uploaded resumes on disk.
+
+## Stack
+
+- **Next.js 16** (App Router) · **React 19** · **TypeScript**
+- **Tailwind CSS v4** · **shadcn/ui**
+- **better-sqlite3** (embedded DB, no server) · **bcryptjs** (password hashing) · **zod** (validation)
+
+## Features
+
+- **Roles & account types**: at sign-up people pick **Human Resources**,
+  **Developer**, or **Product**. HR becomes the HR role; Developer/Product become
+  Interviewers. Admins manage everyone.
+- **Candidates**: add with basic info + resume (PDF/DOC/DOCX) + an optional HR
+  "initial impression" note, track status.
+- **Rounds & hand-off**: assign a candidate to a teammate for the next round;
+  the next interviewer sees prior rounds before starting theirs.
+- **Interview console**: split view — categorized question bank on the left
+  (accordion, search, difficulty/type filters), asked-questions sheet with
+  fast 0–5 scoring and per-question notes, and slide-in panels for soft-skill
+  scoring (with custom parameters + recommendation) and candidate info.
+- **Question banks**: a built-in "Frontend Core" bank (HTML, CSS, JavaScript,
+  React, Web Fundamentals; easy/medium/hard; theory/practical/situational/
+  architectural/debugging). Full CRUD, plus JSON **import/export** and a
+  downloadable **AI-agent-focused template** so you can ask an AI to generate
+  new banks.
+- **Public report**: generate a revocable share link to a print-friendly
+  interview summary (no contact details).
+- **6 themes**: 2 light (Daylight, Latte) and 4 dark (Graphite, Midnight,
+  Forest, Amoled), per-device with an org-wide default.
+
+## Local development
+
+Requires **Node.js 20+**.
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000. On first run the database is created and seeded with
+an admin account (**`admin` / `admin123`** — you'll be prompted to change it) and
+the Frontend Core question bank.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Helper scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `npm run admin` — interactive CLI to create an admin, promote a user to admin,
+  or reset an admin password (handy for first-time setup or recovering access).
+- `npm run setup` — one-shot server deployment (pm2 + nginx). See
+  [DEPLOYMENT.md](./DEPLOYMENT.md).
 
-## Learn More
+### Data location
 
-To learn more about Next.js, take a look at the following resources:
+Everything is stored under `DATA_DIR` (defaults to `./data`):
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `app.db` — SQLite database (schema auto-migrates on startup)
+- `uploads/` — uploaded resumes
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Both are gitignored. Back up by copying the whole `data/` directory.
 
-## Deploy on Vercel
+## Question bank import format
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Download the template from **Question Bank → Template** (or
+`GET /api/question-banks/template`). It's JSON with an `$instructions` block
+written for an AI agent, a `bank` object, and example `questions`. Import
+validates every row and can either create a new bank or merge into an existing
+one by name. Export produces the same shape, so banks round-trip.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Deployment
+
+See **[DEPLOYMENT.md](./DEPLOYMENT.md)** for a full walkthrough of running this on
+a staging server (nginx + pm2, reachable by IP, no domain required).
+
+## Project layout
+
+```
+src/
+  app/
+    (app)/            authenticated pages (dashboard, candidates, question-bank, settings)
+    login/            login + self-registration
+    report/[token]/   public, read-only interview report
+    api/              route handlers (auth, candidates, rounds, question-banks, users, settings, files)
+  components/         UI: app shell, badges, console/, candidates/, bank/, settings/, report/
+  lib/
+    db.ts             SQLite connection, schema, seeding
+    auth.ts           sessions, password hashing, role guards
+    queries.ts        typed data-access helpers
+    pipeline.ts       candidate/round aggregates for dashboard & lists
+    report.ts         public report assembly
+    bank-format.ts    import/export schema + AI template
+    seed/             built-in question bank (JSON per category)
+```

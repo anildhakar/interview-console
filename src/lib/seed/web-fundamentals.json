@@ -1,0 +1,234 @@
+[
+  {
+    "category": "Web Fundamentals",
+    "difficulty": "easy",
+    "qtype": "theory",
+    "question": "What happens when you type a URL and press Enter, up to the first byte?",
+    "answer_hints": "DNS resolution → TCP handshake → TLS handshake (https) → HTTP request sent → server responds. Mention caching layers (browser/DNS), keep-alive. Depth expected scales with level.",
+    "follow_ups": ["Where can caching short-circuit this process?"]
+  },
+  {
+    "category": "Web Fundamentals",
+    "difficulty": "easy",
+    "qtype": "theory",
+    "question": "What's the difference between GET and POST? When is each appropriate?",
+    "answer_hints": "GET: read, idempotent, cacheable, params in URL, no body (usually). POST: create/side effects, body, not cached/idempotent. Also mention PUT/PATCH/DELETE semantics.",
+    "follow_ups": ["Which methods are idempotent and why does it matter for retries?"]
+  },
+  {
+    "category": "Web Fundamentals",
+    "difficulty": "easy",
+    "qtype": "theory",
+    "question": "What do HTTP status codes 200, 301, 404 and 500 mean? Name the general categories.",
+    "answer_hints": "2xx success, 3xx redirect, 4xx client error, 5xx server error. 301 permanent redirect, 404 not found, 500 server error. Bonus: 302 vs 301, 401 vs 403, 304.",
+    "follow_ups": ["Difference between 401 and 403? Between 301 and 302?"]
+  },
+  {
+    "category": "Web Fundamentals",
+    "difficulty": "easy",
+    "qtype": "theory",
+    "question": "What is an API? What makes an API RESTful?",
+    "answer_hints": "Contract for programs to communicate. REST: resources as URLs, HTTP verbs, stateless, representations (JSON), status codes. Contrast with RPC/GraphQL at higher levels.",
+    "follow_ups": ["What does 'stateless' mean for a REST API?"]
+  },
+  {
+    "category": "Web Fundamentals",
+    "difficulty": "easy",
+    "qtype": "practical",
+    "question": "How do you send a JSON POST request from the browser with fetch and read the response?",
+    "answer_hints": "fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)}); await res.json(); check res.ok (fetch doesn't reject on 4xx/5xx).",
+    "follow_ups": ["Why doesn't fetch throw on a 404 or 500?"]
+  },
+  {
+    "category": "Web Fundamentals",
+    "difficulty": "easy",
+    "qtype": "theory",
+    "question": "What is the difference between cookies, sessions and tokens for authentication at a basic level?",
+    "answer_hints": "Cookie: stored by browser, auto-sent. Session: server-side state keyed by a cookie id. Token (JWT): self-contained claims, often in cookie/header. Stateful vs stateless auth.",
+    "follow_ups": ["What does the httpOnly flag on a cookie protect against?"]
+  },
+  {
+    "category": "Web Fundamentals",
+    "difficulty": "easy",
+    "qtype": "theory",
+    "question": "What is HTTPS and why does it matter? What does TLS provide?",
+    "answer_hints": "HTTP over TLS: encryption (confidentiality), integrity, authentication (server identity via certificates). Prevents eavesdropping/tampering/MITM. Certificates, CAs, handshake at a high level.",
+    "follow_ups": ["What is a certificate authority and why do browsers trust one?"]
+  },
+  {
+    "category": "Web Fundamentals",
+    "difficulty": "easy",
+    "qtype": "debugging",
+    "question": "A fetch to another domain fails with a CORS error in the console. What does that mean at a basic level?",
+    "answer_hints": "Browser's same-origin policy blocks cross-origin reads unless the server opts in via CORS headers (Access-Control-Allow-Origin). It's enforced by the browser, not the server refusing.",
+    "follow_ups": ["Can you fix a CORS error purely from the frontend? (No — server or proxy)"]
+  },
+  {
+    "category": "Web Fundamentals",
+    "difficulty": "easy",
+    "qtype": "theory",
+    "question": "What is caching? Name places a web response can be cached.",
+    "answer_hints": "Storing responses to avoid recomputation/refetch. Layers: browser cache, service worker, CDN/edge, reverse proxy, server/app cache, DNS. Cache-Control basics.",
+    "follow_ups": ["What's the difference between a memory cache and a CDN cache for your users?"]
+  },
+  {
+    "category": "Web Fundamentals",
+    "difficulty": "easy",
+    "qtype": "theory",
+    "question": "What is the DOM? How is it different from HTML?",
+    "answer_hints": "DOM is the browser's live in-memory object tree representing the parsed document; HTML is the source text. JS manipulates the DOM; the two can diverge.",
+    "follow_ups": ["Name one way the rendered DOM can differ from the HTML you wrote."]
+  },
+  {
+    "category": "Web Fundamentals",
+    "difficulty": "medium",
+    "qtype": "theory",
+    "question": "Explain the same-origin policy and CORS. Walk through a preflight request.",
+    "answer_hints": "Origin = scheme+host+port. SOP restricts cross-origin JS access. CORS: server allows via headers. Preflight OPTIONS for non-simple requests (custom headers/methods), server responds Allow-Methods/Headers/Origin; credentials mode rules.",
+    "follow_ups": ["What makes a request 'simple' and skip the preflight?"]
+  },
+  {
+    "category": "Web Fundamentals",
+    "difficulty": "medium",
+    "qtype": "theory",
+    "question": "Compare HTTP/1.1, HTTP/2 and HTTP/3. What problems does each solve?",
+    "answer_hints": "1.1: head-of-line blocking, one request per connection (pipelining broken). 2: multiplexing over one TCP connection, header compression, server push. 3: QUIC over UDP, fixes TCP-level HOL blocking, faster handshakes.",
+    "follow_ups": ["Why does HTTP/2 still suffer head-of-line blocking at the TCP layer?"]
+  },
+  {
+    "category": "Web Fundamentals",
+    "difficulty": "medium",
+    "qtype": "practical",
+    "question": "How do Cache-Control, ETag and 304 work together? Design caching headers for static assets vs an HTML page.",
+    "answer_hints": "Static hashed assets: Cache-Control: immutable, max-age=1yr. HTML: no-cache/short max-age + revalidate. ETag/Last-Modified enable 304 Not Modified (conditional GET). stale-while-revalidate for freshness+speed.",
+    "follow_ups": ["Why do we fingerprint asset filenames instead of relying on cache invalidation?"]
+  },
+  {
+    "category": "Web Fundamentals",
+    "difficulty": "medium",
+    "qtype": "theory",
+    "question": "Explain common web security threats: XSS, CSRF, and how you defend against them.",
+    "answer_hints": "XSS: injected script; defend with output encoding, CSP, avoid dangerouslySetInnerHTML, sanitize. CSRF: forged authenticated requests; defend with SameSite cookies, CSRF tokens, checking origin. Distinguish the two clearly.",
+    "follow_ups": ["Why does httpOnly help with XSS but not CSRF, and SameSite the reverse?"]
+  },
+  {
+    "category": "Web Fundamentals",
+    "difficulty": "medium",
+    "qtype": "theory",
+    "question": "What are Core Web Vitals (LCP, INP, CLS)? What causes poor scores?",
+    "answer_hints": "LCP: largest content paint (slow server/resources/render-blocking). INP: interaction responsiveness (long tasks/heavy JS). CLS: layout shift (no dimensions, injected content, web fonts). Know rough good thresholds.",
+    "follow_ups": ["INP replaced FID — what does INP measure that FID didn't?"]
+  },
+  {
+    "category": "Web Fundamentals",
+    "difficulty": "medium",
+    "qtype": "practical",
+    "question": "How does browser rendering performance work — what's the frame budget and how do you stay within it?",
+    "answer_hints": "~16.6ms per frame at 60fps. Long JS tasks block. Break up work (rAF, scheduler, chunking), avoid layout thrash (batch reads/writes), animate compositor props, offload to workers, use content-visibility.",
+    "follow_ups": ["What is layout thrashing and how do you avoid it?"]
+  },
+  {
+    "category": "Web Fundamentals",
+    "difficulty": "medium",
+    "qtype": "situational",
+    "question": "Users on slow 3G in another region say the site takes 10+ seconds to load. How do you investigate and improve?",
+    "answer_hints": "Measure with real-user + lab (WebPageTest from region, throttled). Look at TTFB (CDN/edge), payload size, render-blocking, image weight, waterfall. Fix: CDN, compression (brotli), code-split, lazy images, reduce JS, caching.",
+    "follow_ups": ["How does a CDN improve TTFB for far-away users?"]
+  },
+  {
+    "category": "Web Fundamentals",
+    "difficulty": "medium",
+    "qtype": "theory",
+    "question": "What is a service worker and what can it do? Give real use cases.",
+    "answer_hints": "Proxy between app and network, runs in background, no DOM. Uses: offline caching (Cache API), background sync, push notifications, request interception/strategies. Lifecycle: install/activate/fetch; scope; HTTPS only.",
+    "follow_ups": ["Name a caching strategy (cache-first vs network-first) and when to use it."]
+  },
+  {
+    "category": "Web Fundamentals",
+    "difficulty": "medium",
+    "qtype": "theory",
+    "question": "Compare REST, GraphQL and WebSockets. When would you choose each?",
+    "answer_hints": "REST: resource CRUD, caching, simple. GraphQL: client-shaped queries, avoid over/under-fetching, one endpoint, tricky caching. WebSockets: bidirectional realtime (chat, live). Also SSE for one-way streaming.",
+    "follow_ups": ["When is Server-Sent Events a better fit than WebSockets?"]
+  },
+  {
+    "category": "Web Fundamentals",
+    "difficulty": "medium",
+    "qtype": "debugging",
+    "question": "An authenticated request works in Postman but fails in the browser with 401. What are likely causes?",
+    "answer_hints": "Cookies not sent (credentials: 'include' + CORS Allow-Credentials + not wildcard origin), SameSite blocking cross-site cookie, missing/duplicated auth header, preflight stripping headers, different origin/port. Check network tab request headers.",
+    "follow_ups": ["Why can't Access-Control-Allow-Origin be '*' when sending credentials?"]
+  },
+  {
+    "category": "Web Fundamentals",
+    "difficulty": "hard",
+    "qtype": "architectural",
+    "question": "Design the frontend delivery architecture for a global product: rendering strategy, caching, and CDN. Justify the trade-offs.",
+    "answer_hints": "Choose SSR/SSG/ISR/CSR per route by content dynamism/SEO; edge rendering/CDN for TTFB; cache tiers (immutable assets, HTML SWR); image CDN; region failover; discuss personalization vs cacheability, cache keys, invalidation.",
+    "follow_ups": ["How do you cache HTML at the edge when pages are personalized?"]
+  },
+  {
+    "category": "Web Fundamentals",
+    "difficulty": "hard",
+    "qtype": "theory",
+    "question": "Explain a modern authentication architecture using OAuth2/OIDC. Where do tokens live and what are the security trade-offs?",
+    "answer_hints": "Authorization code + PKCE for SPAs; access vs refresh tokens; ID token (OIDC). Storage trade-offs: httpOnly secure cookies (XSS-safe, CSRF concerns → SameSite) vs memory vs localStorage (XSS risk). Token rotation, short TTLs, BFF pattern.",
+    "follow_ups": ["Why is the BFF (backend-for-frontend) pattern often recommended for SPA auth?"]
+  },
+  {
+    "category": "Web Fundamentals",
+    "difficulty": "hard",
+    "qtype": "practical",
+    "question": "How does Content Security Policy work and how would you roll it out on an existing app without breaking it?",
+    "answer_hints": "Header restricting sources (script-src, style-src, etc.) to mitigate XSS. Roll out with Report-Only + reporting endpoint, inventory sources, remove inline scripts or use nonces/hashes, tighten iteratively, then enforce.",
+    "follow_ups": ["What's the difference between using nonces and hashes for inline scripts?"]
+  },
+  {
+    "category": "Web Fundamentals",
+    "difficulty": "hard",
+    "qtype": "situational",
+    "question": "Your realtime dashboard using WebSockets drops connections behind corporate proxies and doesn't scale past one server. How do you architect a robust solution?",
+    "answer_hints": "Fallbacks (SSE/long-poll), heartbeats + reconnect with backoff + resume/sequence ids, sticky sessions or stateless with a pub/sub backplane (Redis) across nodes, load balancer WS support, message ordering/dedup, auth on connect.",
+    "follow_ups": ["Why do you need a pub/sub backplane when scaling WebSocket servers horizontally?"]
+  },
+  {
+    "category": "Web Fundamentals",
+    "difficulty": "hard",
+    "qtype": "theory",
+    "question": "Explain how DNS resolution works end to end, including caching and its role in performance and failover.",
+    "answer_hints": "Recursive resolver → root → TLD → authoritative; caching by TTL at each level. Perf: latency of first lookup, prefetch/preconnect. Failover/geo via GeoDNS, low TTL, health checks, anycast. Propagation delays from TTL.",
+    "follow_ups": ["Why can a low TTL both help failover and hurt performance?"]
+  },
+  {
+    "category": "Web Fundamentals",
+    "difficulty": "hard",
+    "qtype": "architectural",
+    "question": "Design a micro-frontend architecture for multiple teams shipping independently into one app. What are the integration and pitfalls?",
+    "answer_hints": "Integration options: build-time packages, iframes, module federation, web components, edge composition. Concerns: shared deps/versioning, routing, shared state/auth, consistent design system, isolated failures, bundle duplication, CSS isolation, ownership boundaries.",
+    "follow_ups": ["How do you share a single React instance across federated micro-frontends and why does it matter?"]
+  },
+  {
+    "category": "Web Fundamentals",
+    "difficulty": "hard",
+    "qtype": "debugging",
+    "question": "After a deploy, some users see a blank page or a chunk-load error, but a hard refresh fixes it. What's happening and how do you prevent it?",
+    "answer_hints": "Old HTML/SW references hashed chunks that no longer exist after deploy (cache/immutable + removed assets). Prevent: keep old chunks for a window, versioned deploys, SW update flow, retry-on-chunk-error → reload, cache-busting HTML with revalidation.",
+    "follow_ups": ["How would you gracefully recover from a failed dynamic import in production?"]
+  },
+  {
+    "category": "Web Fundamentals",
+    "difficulty": "hard",
+    "qtype": "theory",
+    "question": "How do browsers prioritize and schedule network requests and main-thread work? How can you influence it?",
+    "answer_hints": "Resource priorities (document/CSS/fonts high, images/async low), preload scanner, HTTP/2 prioritization. Influence: rel=preload/preconnect/prefetch, fetchpriority, defer/async, lazy loading, code splitting, scheduler.postTask for main-thread priority.",
+    "follow_ups": ["When would fetchpriority=high on an image actually help, and when could it hurt?"]
+  },
+  {
+    "category": "Web Fundamentals",
+    "difficulty": "hard",
+    "qtype": "situational",
+    "question": "Your company must meet accessibility (WCAG) compliance across a large existing product. How do you approach it as an engineering initiative?",
+    "answer_hints": "Audit (automated axe/Lighthouse + manual keyboard/SR), prioritize by impact/traffic, fix foundational patterns (focus, semantics, contrast, labels) in shared components, add lint/CI checks, set standards/training, regression tests, ongoing governance.",
+    "follow_ups": ["Why can't automated tools alone certify accessibility compliance?"]
+  }
+]

@@ -1,0 +1,234 @@
+[
+  {
+    "category": "React",
+    "difficulty": "easy",
+    "qtype": "theory",
+    "question": "What is JSX and how does it become something the browser runs?",
+    "answer_hints": "Syntax sugar compiled (Babel/SWC) to React.createElement / jsx() calls producing element objects (a virtual tree). Not HTML — className, camelCase props, expressions in {}.",
+    "follow_ups": ["Why must a component return a single root (or Fragment)?"]
+  },
+  {
+    "category": "React",
+    "difficulty": "easy",
+    "qtype": "theory",
+    "question": "What are props and state? How do they differ?",
+    "answer_hints": "Props: passed in, read-only, owned by parent. State: internal, mutable via setter, triggers re-render. Both drive rendering; lifting state up to share.",
+    "follow_ups": ["What happens if you mutate state directly instead of using the setter?"]
+  },
+  {
+    "category": "React",
+    "difficulty": "easy",
+    "qtype": "theory",
+    "question": "Why do lists need a key prop? What makes a good key?",
+    "answer_hints": "Keys give elements stable identity for reconciliation (match, reorder, preserve state). Good: stable unique id. Bad: array index when list reorders/filters — causes state/DOM mismatch.",
+    "follow_ups": ["What bug appears when using index as key in a reorderable list with inputs?"]
+  },
+  {
+    "category": "React",
+    "difficulty": "easy",
+    "qtype": "practical",
+    "question": "How do you handle a controlled form input in React? What's uncontrolled?",
+    "answer_hints": "Controlled: value={state} + onChange updates state (single source of truth). Uncontrolled: defaultValue + ref reads on submit. Trade-offs: validation/formatting vs simplicity/perf.",
+    "follow_ups": ["When would you deliberately choose uncontrolled inputs?"]
+  },
+  {
+    "category": "React",
+    "difficulty": "easy",
+    "qtype": "theory",
+    "question": "What is the useState hook? What does its setter's functional form solve?",
+    "answer_hints": "Declares state in a function component. setter(prev => ...) avoids stale closures when new state depends on old, and batches correctly. State updates are asynchronous/batched.",
+    "follow_ups": ["Why might two setCount(count+1) calls only increment once?"]
+  },
+  {
+    "category": "React",
+    "difficulty": "easy",
+    "qtype": "debugging",
+    "question": "A component shows 'Warning: Each child in a list should have a unique key prop.' but the app seems to work. Should you care?",
+    "answer_hints": "Yes — without stable keys React may reuse wrong DOM/state, causing subtle bugs on reorder, focus loss, wrong animations, and slower reconciliation. Fix with stable ids.",
+    "follow_ups": ["Give a concrete example where a missing key causes a visible bug."]
+  },
+  {
+    "category": "React",
+    "difficulty": "easy",
+    "qtype": "practical",
+    "question": "How do you conditionally render content and lists in JSX?",
+    "answer_hints": "&& for presence (watch the 0/'' falsy-render gotcha), ternary for either/or, early return, .map for lists with keys. Extract complex conditions to variables/functions.",
+    "follow_ups": ["Why does {count && <X/>} render '0' when count is 0?"]
+  },
+  {
+    "category": "React",
+    "difficulty": "easy",
+    "qtype": "theory",
+    "question": "What is the virtual DOM and how does reconciliation work at a high level?",
+    "answer_hints": "In-memory element tree; on state change React builds new tree, diffs against previous, computes minimal real DOM updates. Heuristics: same type reuse, keys for lists, different type → remount.",
+    "follow_ups": ["What does React do when an element's type changes between renders?"]
+  },
+  {
+    "category": "React",
+    "difficulty": "easy",
+    "qtype": "practical",
+    "question": "How do you pass data from a child back up to a parent?",
+    "answer_hints": "Parent passes a callback prop; child calls it with data. Lift shared state to the closest common ancestor. Contrast with context for deep trees.",
+    "follow_ups": ["When does prop drilling become a smell, and what are the alternatives?"]
+  },
+  {
+    "category": "React",
+    "difficulty": "easy",
+    "qtype": "theory",
+    "question": "What is the children prop and how do you compose components with it?",
+    "answer_hints": "Whatever is nested between tags is props.children; enables layout/wrapper components, slots, composition over configuration. Can be elements, functions (render props), arrays.",
+    "follow_ups": ["How does composition help avoid prop drilling?"]
+  },
+  {
+    "category": "React",
+    "difficulty": "medium",
+    "qtype": "theory",
+    "question": "Explain useEffect: when it runs, the dependency array, and cleanup. What's a common misuse?",
+    "answer_hints": "Runs after paint; deps control re-run; cleanup runs before next effect and on unmount. Misuse: syncing derived state, missing deps (stale), using it for things that should be event handlers or computed during render.",
+    "follow_ups": ["Give an example of state you should compute during render instead of in an effect."]
+  },
+  {
+    "category": "React",
+    "difficulty": "medium",
+    "qtype": "theory",
+    "question": "What are the Rules of Hooks and why do they exist?",
+    "answer_hints": "Call hooks at top level, same order every render, only in components/custom hooks. Because hook state is tracked by call order (index), not name — conditional calls break the mapping.",
+    "follow_ups": ["Why does calling a hook inside an if statement break React?"]
+  },
+  {
+    "category": "React",
+    "difficulty": "medium",
+    "qtype": "practical",
+    "question": "When would you use useMemo, useCallback and React.memo? When are they premature?",
+    "answer_hints": "memo: skip re-render if props equal. useMemo: cache expensive computed value. useCallback: stable function identity for memoized children/deps. Premature when cheap — they cost memory/complexity and can hide real issues.",
+    "follow_ups": ["Why is useCallback pointless if the child isn't memoized?"]
+  },
+  {
+    "category": "React",
+    "difficulty": "medium",
+    "qtype": "debugging",
+    "question": "A useEffect runs in an infinite loop. What are the usual causes and fixes?",
+    "answer_hints": "Setting state that's also a dependency; a new object/array/function created every render in deps; missing deps triggering resets. Fix: stabilize with useMemo/useCallback, move objects out, correct dep list, functional updates.",
+    "follow_ups": ["Why does passing {} as a dependency cause the effect to run every render?"]
+  },
+  {
+    "category": "React",
+    "difficulty": "medium",
+    "qtype": "theory",
+    "question": "What is the Context API? What are its performance pitfalls?",
+    "answer_hints": "Shares values without prop drilling. Pitfall: any context value change re-renders all consumers; putting frequently-changing + rarely-changing data in one context; new object value each render. Split contexts, memoize value, selectors.",
+    "follow_ups": ["How would you prevent unrelated consumers from re-rendering on every context update?"]
+  },
+  {
+    "category": "React",
+    "difficulty": "medium",
+    "qtype": "practical",
+    "question": "How do you fetch data in a component and handle loading, error and race conditions?",
+    "answer_hints": "Effect with AbortController + ignore flag in cleanup to drop stale responses; loading/error/data state (or useReducer); or a data library (React Query/SWR) for caching/dedupe/retries. Avoid setState after unmount.",
+    "follow_ups": ["Why prefer a data-fetching library over hand-rolled effects at scale?"]
+  },
+  {
+    "category": "React",
+    "difficulty": "medium",
+    "qtype": "theory",
+    "question": "What is a custom hook? When would you extract one?",
+    "answer_hints": "A function using hooks to encapsulate reusable stateful logic (useLocalStorage, useDebounce, useFetch). Extract when logic is duplicated or a component's effects/state grow complex. Composition, not inheritance.",
+    "follow_ups": ["Do two components using the same custom hook share state? (No — separate instances)"]
+  },
+  {
+    "category": "React",
+    "difficulty": "medium",
+    "qtype": "situational",
+    "question": "A form with 30 fields re-renders the entire form on every keystroke and feels laggy. How do you diagnose and improve it?",
+    "answer_hints": "Profiler to confirm; causes: single state object + all inputs subscribed, non-memoized children, expensive renders. Fixes: split components, uncontrolled/refs or a form lib (RHF), memoize, isolate field state, debounce expensive work.",
+    "follow_ups": ["Why do uncontrolled forms (react-hook-form) reduce re-renders?"]
+  },
+  {
+    "category": "React",
+    "difficulty": "medium",
+    "qtype": "theory",
+    "question": "What's the difference between useState and useReducer? When prefer reducer?",
+    "answer_hints": "useReducer centralizes complex/related state transitions, makes updates testable/predictable, good for state machines, many sub-values, or next-state depends on action. Dispatch identity is stable.",
+    "follow_ups": ["How does a reducer help when multiple state values must change together atomically?"]
+  },
+  {
+    "category": "React",
+    "difficulty": "medium",
+    "qtype": "practical",
+    "question": "How do you handle errors in the render tree so one broken component doesn't blank the whole app?",
+    "answer_hints": "Error boundaries (class componentDidCatch/getDerivedStateFromError, or react-error-boundary) around sections; fallback UI + reset; note they don't catch async/event handler errors — handle those separately.",
+    "follow_ups": ["What kinds of errors do error boundaries NOT catch?"]
+  },
+  {
+    "category": "React",
+    "difficulty": "hard",
+    "qtype": "theory",
+    "question": "Explain React's rendering model: render phase vs commit phase, and how batching and concurrent features change behavior.",
+    "answer_hints": "Render: pure, may run multiple times/interruptible (concurrent), builds tree. Commit: applies DOM, runs layout effects. Automatic batching, transitions (useTransition/startTransition) mark low-priority updates, Suspense for async.",
+    "follow_ups": ["What does useTransition give you and when would you reach for it?"]
+  },
+  {
+    "category": "React",
+    "difficulty": "hard",
+    "qtype": "architectural",
+    "question": "Design state management for a large app: server data, global UI state, form state, and URL state. What tools and boundaries?",
+    "answer_hints": "Separate concerns: server cache (React Query/SWR/RTK Query), global client state (Zustand/Redux/Context sparingly), form state (RHF), URL as state (router/search params). Colocate, avoid one giant store, derive don't duplicate.",
+    "follow_ups": ["Why is treating server data as 'global state' in Redux often an anti-pattern now?"]
+  },
+  {
+    "category": "React",
+    "difficulty": "hard",
+    "qtype": "practical",
+    "question": "Implement virtualization for a list of 50k rows. What are the moving parts and the accessibility/UX gotchas?",
+    "answer_hints": "Windowing (react-window/virtualized or custom): measure viewport, compute visible range from scrollTop + item height, absolute-position/translate rows, overscan buffer, variable heights need measurement cache. Gotchas: focus on recycled nodes, ctrl-F, sticky headers, scroll restoration.",
+    "follow_ups": ["How do you handle variable-height rows in a virtualized list?"]
+  },
+  {
+    "category": "React",
+    "difficulty": "hard",
+    "qtype": "debugging",
+    "question": "After upgrading to Strict Mode (or React 18), effects and API calls fire twice in dev. Is this a bug? How do you make code correct?",
+    "answer_hints": "Intentional double-invoke in dev to surface missing cleanup/impurity. Not a prod bug. Make effects idempotent, add cleanup (abort fetch), avoid side effects in render, use fetch libraries with dedupe/caching.",
+    "follow_ups": ["Why does React run effects twice in dev, and what class of bug does it catch?"]
+  },
+  {
+    "category": "React",
+    "difficulty": "hard",
+    "qtype": "theory",
+    "question": "What are React Server Components and how do they differ from SSR and client components?",
+    "answer_hints": "RSC render on server, never ship JS for that component, can access backend directly, stream serialized output; no state/effects/browser APIs. SSR renders client components to HTML then hydrates. 'use client' boundary; server/client composition.",
+    "follow_ups": ["What can't you do in a Server Component and why?"]
+  },
+  {
+    "category": "React",
+    "difficulty": "hard",
+    "qtype": "situational",
+    "question": "Your React app's initial bundle is 2MB and time-to-interactive is poor. Walk through how you'd cut it down.",
+    "answer_hints": "Analyze bundle (source-map-explorer); code-split by route (lazy/Suspense) and heavy components; tree-shake, drop heavy deps/moment→date-fns, dynamic import below-fold; server-render/RSC; defer non-critical JS; check duplicate deps.",
+    "follow_ups": ["How does React.lazy + Suspense enable route-based code splitting?"]
+  },
+  {
+    "category": "React",
+    "difficulty": "hard",
+    "qtype": "practical",
+    "question": "Implement an accessible, reusable modal in React with focus trap, escape to close, portal, and scroll lock. Outline the design.",
+    "answer_hints": "createPortal to body/top layer (or native <dialog>), focus trap + restore focus on close, aria-modal/labelledby, Esc + backdrop click, lock body scroll, inert background, unmount vs keep-mounted. Composition API (open/onClose/children).",
+    "follow_ups": ["Why is returning focus to the trigger on close important?"]
+  },
+  {
+    "category": "React",
+    "difficulty": "hard",
+    "qtype": "architectural",
+    "question": "Design a plugin/widget system where third parties can render components into your React app safely and without version conflicts.",
+    "answer_hints": "Boundaries: iframe or shadow DOM isolation, module federation or runtime registry, a stable props/event contract, error boundaries per widget, sandboxing/CSP, version negotiation, lazy loading, timeout/fallback. Trade isolation vs integration.",
+    "follow_ups": ["What are the trade-offs of iframe isolation vs module federation for plugins?"]
+  },
+  {
+    "category": "React",
+    "difficulty": "hard",
+    "qtype": "debugging",
+    "question": "A parent re-renders frequently and users report inputs in a child losing focus or resetting. What are likely causes?",
+    "answer_hints": "Defining a component inside another (new type each render → remount), unstable keys, conditionally swapping element type, resetting state via key change, recreating context value. Move component definitions out, stabilize keys/identity.",
+    "follow_ups": ["Why does declaring a component inside render cause remounts and state loss?"]
+  }
+]

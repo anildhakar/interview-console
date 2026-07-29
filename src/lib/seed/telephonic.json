@@ -1,0 +1,130 @@
+[
+  {
+    "category": "Introduction",
+    "difficulty": "easy",
+    "qtype": "situational",
+    "question": "Walk me through your background and what you're currently working on.",
+    "answer_hints": "Listen for a clear, concise narrative; relevant experience; ownership of work; communication clarity on a call.",
+    "follow_ups": ["What part of that work are you most proud of?"]
+  },
+  {
+    "category": "Introduction",
+    "difficulty": "easy",
+    "qtype": "situational",
+    "question": "What are you looking for in your next role, and why are you exploring now?",
+    "answer_hints": "Motivations align with the role; realistic expectations; not just leaving something negative.",
+    "follow_ups": ["What would make you say no to an otherwise good offer?"]
+  },
+  {
+    "category": "Logistics",
+    "difficulty": "easy",
+    "qtype": "situational",
+    "question": "What's your notice period / earliest availability, and are you interviewing elsewhere?",
+    "answer_hints": "Notice period, timelines, competing offers — sets expectations for the pipeline. Note honesty.",
+    "follow_ups": ["Any constraints on location, remote, or working hours?"]
+  },
+  {
+    "category": "Logistics",
+    "difficulty": "easy",
+    "qtype": "situational",
+    "question": "What are your compensation expectations for this role?",
+    "answer_hints": "A realistic range; flexibility; whether it fits the band. Note if they deflect or are unrealistic.",
+    "follow_ups": ["Is that number flexible for the right opportunity?"]
+  },
+  {
+    "category": "Technical Screening",
+    "difficulty": "easy",
+    "qtype": "theory",
+    "question": "Which technologies do you work with day to day, and where would you rate yourself strongest?",
+    "answer_hints": "Self-awareness; depth vs breadth; matches the stack. Watch for overclaiming.",
+    "follow_ups": ["What's something in that stack you learned recently?"]
+  },
+  {
+    "category": "Technical Screening",
+    "difficulty": "medium",
+    "qtype": "theory",
+    "question": "Explain a technical concept you know well as if to a non-technical person.",
+    "answer_hints": "Communication skill; structuring an explanation; analogies; not drowning in jargon — important for a phone screen.",
+    "follow_ups": ["How would you explain it differently to a senior engineer?"]
+  },
+  {
+    "category": "Technical Screening",
+    "difficulty": "medium",
+    "qtype": "situational",
+    "question": "Tell me about a recent technical problem you solved end to end.",
+    "answer_hints": "Clear problem statement, approach, trade-offs, outcome. Ownership and depth. STAR-style structure.",
+    "follow_ups": ["What would you do differently in hindsight?"]
+  },
+  {
+    "category": "Technical Screening",
+    "difficulty": "medium",
+    "qtype": "theory",
+    "question": "How do you keep your skills up to date and learn new things?",
+    "answer_hints": "Concrete habits (reading, side projects, docs, communities); curiosity; not just 'on the job'.",
+    "follow_ups": ["What are you learning right now?"]
+  },
+  {
+    "category": "Collaboration",
+    "difficulty": "medium",
+    "qtype": "situational",
+    "question": "Describe a time you disagreed with a teammate or manager. How did you handle it?",
+    "answer_hints": "Handles conflict maturely; data/reasoning over ego; can disagree and commit; communication.",
+    "follow_ups": ["What was the outcome, and how's the relationship now?"]
+  },
+  {
+    "category": "Collaboration",
+    "difficulty": "medium",
+    "qtype": "situational",
+    "question": "How do you work with product, design, or QA in your current team?",
+    "answer_hints": "Cross-functional collaboration; empathy for other roles; communication cadence.",
+    "follow_ups": ["Tell me about a time that collaboration broke down and what you did."]
+  },
+  {
+    "category": "Collaboration",
+    "difficulty": "medium",
+    "qtype": "situational",
+    "question": "Tell me about a time you received tough feedback. What did you do with it?",
+    "answer_hints": "Coachability; growth mindset; a concrete change made. Watch for defensiveness.",
+    "follow_ups": ["What feedback would your last manager give you?"]
+  },
+  {
+    "category": "Ownership",
+    "difficulty": "medium",
+    "qtype": "situational",
+    "question": "Tell me about a project you owned. What was your specific contribution?",
+    "answer_hints": "Distinguishes 'I' from 'we'; scope of ownership; impact and metrics; accountability.",
+    "follow_ups": ["What was the hardest decision you had to make on it?"]
+  },
+  {
+    "category": "Ownership",
+    "difficulty": "hard",
+    "qtype": "situational",
+    "question": "Describe a time a project didn't go as planned. What happened and what did you learn?",
+    "answer_hints": "Honesty about failure; root-cause thinking; lessons applied later; no blame-shifting.",
+    "follow_ups": ["How did you communicate the setback to stakeholders?"]
+  },
+  {
+    "category": "Ownership",
+    "difficulty": "hard",
+    "qtype": "situational",
+    "question": "How do you prioritise when everything feels urgent and you're short on time?",
+    "answer_hints": "A framework (impact/effort, deadlines, dependencies); communicating trade-offs; saying no; escalation.",
+    "follow_ups": ["Give a concrete recent example."]
+  },
+  {
+    "category": "Culture Fit",
+    "difficulty": "easy",
+    "qtype": "situational",
+    "question": "What kind of environment and team do you do your best work in?",
+    "answer_hints": "Self-awareness; fit with the actual team culture; realistic. Red flags if it's a total mismatch.",
+    "follow_ups": ["What environment brings out your worst?"]
+  },
+  {
+    "category": "Culture Fit",
+    "difficulty": "easy",
+    "qtype": "situational",
+    "question": "Do you have any questions for me about the role, team, or company?",
+    "answer_hints": "Thoughtful, researched questions signal genuine interest and seniority. No questions can be a mild flag.",
+    "follow_ups": []
+  }
+]

@@ -1,0 +1,242 @@
+[
+  {
+    "category": "HTML",
+    "difficulty": "easy",
+    "qtype": "theory",
+    "question": "What is the difference between a <div> and a <span>?",
+    "answer_hints": "div is block-level (starts on a new line, takes full width); span is inline (flows with text). Both are non-semantic containers.",
+    "follow_ups": ["When would you avoid using div and reach for a semantic element instead?"]
+  },
+  {
+    "category": "HTML",
+    "difficulty": "easy",
+    "qtype": "theory",
+    "question": "What does semantic HTML mean? Name five semantic elements and what they're for.",
+    "answer_hints": "Elements that describe their meaning: header, nav, main, article, section, aside, footer, figure. Benefits: accessibility (screen readers), SEO, readability.",
+    "follow_ups": ["What's the difference between article and section?"]
+  },
+  {
+    "category": "HTML",
+    "difficulty": "easy",
+    "qtype": "theory",
+    "question": "What is the purpose of the alt attribute on images? What happens if it's empty vs missing?",
+    "answer_hints": "Text alternative for screen readers and when image fails to load. alt=\"\" marks image as decorative (skipped by screen readers); missing alt makes readers announce the filename.",
+    "follow_ups": ["How would you write alt text for a chart or graph?"]
+  },
+  {
+    "category": "HTML",
+    "difficulty": "easy",
+    "qtype": "practical",
+    "question": "How would you build a form with a required email field and a submit button that validates without any JavaScript?",
+    "answer_hints": "input type=\"email\" with required attribute; browser handles validation on submit. Mention pattern, minlength, novalidate to disable.",
+    "follow_ups": ["How do you style an invalid field with CSS only? (:invalid, :user-invalid)"]
+  },
+  {
+    "category": "HTML",
+    "difficulty": "easy",
+    "qtype": "theory",
+    "question": "What's the difference between id and class attributes?",
+    "answer_hints": "id must be unique per page, used for anchors, label/for, aria references; class is reusable for styling groups. id has higher CSS specificity.",
+    "follow_ups": ["Why is styling by id generally discouraged?"]
+  },
+  {
+    "category": "HTML",
+    "difficulty": "easy",
+    "qtype": "theory",
+    "question": "What does the DOCTYPE declaration do? What happens without it?",
+    "answer_hints": "Tells the browser to use standards mode. Without it: quirks mode — legacy box model, inconsistent rendering.",
+    "follow_ups": ["What is quirks mode and can you name one difference it causes?"]
+  },
+  {
+    "category": "HTML",
+    "difficulty": "easy",
+    "qtype": "practical",
+    "question": "How do you open a link in a new tab safely? What attributes do you need and why?",
+    "answer_hints": "target=\"_blank\" with rel=\"noopener noreferrer\". noopener prevents the new page accessing window.opener (tab-nabbing); noreferrer also hides the referrer.",
+    "follow_ups": ["Do modern browsers imply noopener for target=_blank?"]
+  },
+  {
+    "category": "HTML",
+    "difficulty": "easy",
+    "qtype": "theory",
+    "question": "What is the difference between <script>, <script defer> and <script async>?",
+    "answer_hints": "Plain: blocks parsing, executes immediately. defer: downloads in parallel, executes after parsing in order. async: downloads in parallel, executes as soon as ready (order not guaranteed).",
+    "follow_ups": ["Which would you use for an analytics snippet vs your app bundle?"]
+  },
+  {
+    "category": "HTML",
+    "difficulty": "easy",
+    "qtype": "debugging",
+    "question": "A developer wrote <button> inside an <a> tag and clicks behave strangely. Why is this a problem?",
+    "answer_hints": "Interactive elements can't be nested — invalid HTML; browsers may reparent them and event behavior becomes unpredictable. Pick one: style a link as a button or handle navigation in the button.",
+    "follow_ups": ["When should something be a link vs a button?"]
+  },
+  {
+    "category": "HTML",
+    "difficulty": "easy",
+    "qtype": "theory",
+    "question": "What are data-* attributes and when would you use them?",
+    "answer_hints": "Custom attributes for embedding data on elements, read via element.dataset. Good for hooks/test ids/light state; not a replacement for proper state management.",
+    "follow_ups": ["How do you read data-user-id from JavaScript? (dataset.userId — camelCase)"]
+  },
+  {
+    "category": "HTML",
+    "difficulty": "medium",
+    "qtype": "theory",
+    "question": "Explain how the browser parses an HTML document into the DOM. What blocks parsing?",
+    "answer_hints": "Tokenizer → tree construction; parsing is incremental. Synchronous scripts block parsing (may document.write); CSS blocks script execution (scripts can read computed styles). Preload scanner fetches resources ahead.",
+    "follow_ups": ["What is the preload scanner and why does it matter for performance?"]
+  },
+  {
+    "category": "HTML",
+    "difficulty": "medium",
+    "qtype": "practical",
+    "question": "Build an accessible custom dropdown: what HTML structure and ARIA attributes would you use?",
+    "answer_hints": "Prefer native <select> first. Custom: button with aria-haspopup=\"listbox\", aria-expanded; list with role=\"listbox\", options with role=\"option\", aria-selected; keyboard support (arrows, Enter, Esc), focus management.",
+    "follow_ups": ["Why is the native select often still the better choice on mobile?"]
+  },
+  {
+    "category": "HTML",
+    "difficulty": "medium",
+    "qtype": "theory",
+    "question": "What is the difference between localStorage, sessionStorage and cookies? When is each appropriate?",
+    "answer_hints": "localStorage: persistent, ~5-10MB, per-origin, not sent to server. sessionStorage: per-tab lifetime. Cookies: ~4KB, sent with every request, can be httpOnly/secure — right place for session tokens.",
+    "follow_ups": ["Why should auth tokens generally not live in localStorage?"]
+  },
+  {
+    "category": "HTML",
+    "difficulty": "medium",
+    "qtype": "situational",
+    "question": "Your marketing team wants a page to rank better and be readable by screen readers, but the page is built entirely of divs with click handlers. What would you change and how would you prioritize?",
+    "answer_hints": "Look for: semantic landmarks (header/nav/main), real buttons/links (keyboard + SR support for free), heading hierarchy, alt text, form labels. Prioritize interactive elements first (biggest a11y wins), then structure/landmarks.",
+    "follow_ups": ["How would you verify improvements? (Lighthouse, axe, keyboard-only walkthrough, screen reader test)"]
+  },
+  {
+    "category": "HTML",
+    "difficulty": "medium",
+    "qtype": "practical",
+    "question": "How do you make an image responsive so mobile users don't download a huge desktop image?",
+    "answer_hints": "srcset with width descriptors + sizes attribute, or <picture> for art direction/format switching (AVIF/WebP with fallback). Mention loading=\"lazy\" and width/height to avoid layout shift.",
+    "follow_ups": ["What's the difference between srcset and the picture element?"]
+  },
+  {
+    "category": "HTML",
+    "difficulty": "medium",
+    "qtype": "theory",
+    "question": "Explain the difference between the DOM and the HTML you write. Can they differ?",
+    "answer_hints": "DOM is the live parsed tree; browsers fix invalid markup (auto-close tags, move misplaced elements like table text), and JS mutates it. View-source vs inspector shows the difference.",
+    "follow_ups": ["Give an example where the browser rewrites your markup (e.g., <p><div> or <tr> outside <table>)."]
+  },
+  {
+    "category": "HTML",
+    "difficulty": "medium",
+    "qtype": "debugging",
+    "question": "A form submits when the user clicks a 'Cancel' button inside it. Why, and how do you fix it?",
+    "answer_hints": "Buttons inside forms default to type=\"submit\". Fix: type=\"button\". Also mention Enter-key implicit submission behavior.",
+    "follow_ups": ["Which button does Enter trigger when a form has multiple submit buttons? (the first one)"]
+  },
+  {
+    "category": "HTML",
+    "difficulty": "medium",
+    "qtype": "theory",
+    "question": "What are web components (custom elements, shadow DOM, templates)? What problems do they solve?",
+    "answer_hints": "Framework-agnostic reusable components: customElements.define, shadow DOM for style/DOM encapsulation, <template>/<slot>. Good for design systems shared across stacks; trade-offs: SSR, styling across shadow boundary.",
+    "follow_ups": ["How does shadow DOM style encapsulation work — what leaks through? (inherited properties, CSS custom properties)"]
+  },
+  {
+    "category": "HTML",
+    "difficulty": "medium",
+    "qtype": "practical",
+    "question": "How would you implement an accessible modal dialog? Consider focus, keyboard and screen readers.",
+    "answer_hints": "Prefer native <dialog> with showModal() (focus trap, Esc, ::backdrop, inert background for free). Manual: role=\"dialog\", aria-modal, focus trap, return focus on close, Esc handler, aria-labelledby.",
+    "follow_ups": ["What does the inert attribute do?"]
+  },
+  {
+    "category": "HTML",
+    "difficulty": "medium",
+    "qtype": "situational",
+    "question": "You need to embed a third-party widget (e.g., a chat bubble) without letting it break or read your page. What are your options?",
+    "answer_hints": "iframe for isolation (separate origin, sandbox attribute, allow list), postMessage for communication. Script embeds are riskier: global namespace, CSS bleed, security. Mention CSP.",
+    "follow_ups": ["What does the iframe sandbox attribute actually restrict?"]
+  },
+  {
+    "category": "HTML",
+    "difficulty": "hard",
+    "qtype": "theory",
+    "question": "Walk through what happens in the browser from receiving HTML bytes to pixels on screen (critical rendering path).",
+    "answer_hints": "Bytes → tokens → DOM; CSS → CSSOM; DOM+CSSOM → render tree; layout (geometry); paint (rasterize layers); composite. Render-blocking CSS, parser-blocking JS, reflow vs repaint vs composite-only (transform/opacity).",
+    "follow_ups": ["Which CSS properties can animate without triggering layout or paint?"]
+  },
+  {
+    "category": "HTML",
+    "difficulty": "hard",
+    "qtype": "architectural",
+    "question": "Design the document structure and loading strategy for a content site that must hit excellent Core Web Vitals on slow devices.",
+    "answer_hints": "Look for: SSR/static HTML, inline critical CSS, defer JS, priority hints/preload for LCP image, font-display strategy + preload fonts, explicit dimensions to prevent CLS, lazy-load below fold, minimal third parties.",
+    "follow_ups": ["How do you find and prioritize the LCP element?", "What commonly causes CLS and how do you prevent each cause?"]
+  },
+  {
+    "category": "HTML",
+    "difficulty": "hard",
+    "qtype": "theory",
+    "question": "Explain how ARIA live regions work. When do aria-live polite vs assertive apply, and what are common pitfalls?",
+    "answer_hints": "Announce dynamic changes to screen readers: aria-live=\"polite\" (waits) vs \"assertive\" (interrupts); role=\"status\"/\"alert\" shortcuts. Pitfalls: region must exist before content changes, over-announcing, hidden regions.",
+    "follow_ups": ["How would you announce 'Item added to cart' after an AJAX action?"]
+  },
+  {
+    "category": "HTML",
+    "difficulty": "hard",
+    "qtype": "debugging",
+    "question": "Your page's SSR HTML looks correct, but after hydration the browser shows duplicated or reshuffled content. The markup contains a <p> wrapping a <div>. Explain what's happening.",
+    "answer_hints": "Invalid nesting: browser's parser closes <p> before <div>, so the client-generated DOM doesn't match server HTML → hydration mismatch → React re-creates/moves nodes. Fix the invalid markup.",
+    "follow_ups": ["What other common causes of hydration mismatch have you seen? (dates, random ids, browser extensions)"]
+  },
+  {
+    "category": "HTML",
+    "difficulty": "hard",
+    "qtype": "practical",
+    "question": "How would you implement an infinitely scrolling accessible list of 100k items without destroying performance?",
+    "answer_hints": "Virtualization/windowing (render only visible rows), IntersectionObserver for load-more sentinel, content-visibility: auto as a lighter option, stable item heights or measurement, aria-setsize/aria-posinset, focus handling on recycle.",
+    "follow_ups": ["What breaks for accessibility and find-in-page when you virtualize, and how do you mitigate?"]
+  },
+  {
+    "category": "HTML",
+    "difficulty": "hard",
+    "qtype": "theory",
+    "question": "What is the difference between shadow DOM and iframe isolation? Compare their security and styling boundaries.",
+    "answer_hints": "Shadow DOM: style/DOM encapsulation only — same JS realm, no security boundary; inherited styles and custom properties cross. iframe: separate browsing context, real origin-based security boundary, own realm; heavier, needs postMessage.",
+    "follow_ups": ["When would you pick each for a design system vs a payment widget?"]
+  },
+  {
+    "category": "HTML",
+    "difficulty": "hard",
+    "qtype": "situational",
+    "question": "SEO reports your SPA's pages aren't being indexed properly. What do you investigate and what solutions do you propose?",
+    "answer_hints": "Investigate: what Googlebot sees (rendered vs raw HTML), meta/canonical/robots, status codes for client routes, lazy content requiring interaction. Solutions: SSR/SSG/prerendering, proper titles/meta per route, sitemap, structured data.",
+    "follow_ups": ["How does Google handle JavaScript rendering and why is it still risky to rely on it?"]
+  },
+  {
+    "category": "HTML",
+    "difficulty": "hard",
+    "qtype": "architectural",
+    "question": "Your company needs one header/nav shared across apps built in React, Vue and plain HTML. How would you ship it?",
+    "answer_hints": "Web component (custom element) is the natural fit: framework-agnostic, shadow DOM for style isolation, attributes/events as API. Discuss SSR limitations, versioning/distribution (CDN vs npm), design tokens via CSS custom properties.",
+    "follow_ups": ["How would the apps communicate auth state to the shared header?"]
+  },
+  {
+    "category": "HTML",
+    "difficulty": "hard",
+    "qtype": "debugging",
+    "question": "A table with 5000 rows makes the whole page janky even when just hovering. The CSS has tr:hover rules and the table is inside a container with box-shadow. How do you diagnose and fix?",
+    "answer_hints": "DevTools Performance panel: look for large paint areas/layout thrash. Hover triggers repaint of huge layer; shadow makes paints expensive. Fixes: virtualization, content-visibility, simplify hover paint, will-change/containment (contain: paint/layout).",
+    "follow_ups": ["What does CSS contain do and when is it safe?"]
+  },
+  {
+    "category": "HTML",
+    "difficulty": "hard",
+    "qtype": "practical",
+    "question": "Implement drag-and-drop file upload with a fallback, progress and accessibility. What APIs and markup do you use?",
+    "answer_hints": "input type=\"file\" (always present — it's the accessible path), dragover/drop events + DataTransfer, FormData + fetch/XHR for progress events, aria-live for status announcements, validate type/size client- and server-side.",
+    "follow_ups": ["Why does fetch make upload progress hard, and what do you use instead? (XHR upload.onprogress or streams)"]
+  }
+]

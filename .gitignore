@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Interview Console runtime data (SQLite DB + uploaded resumes)
+/data/
+
+# local machine-specific tooling config
+/.claude/
