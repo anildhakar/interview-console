@@ -2,14 +2,25 @@
 
 import { useCallback, useEffect, useRef } from "react";
 
+type SaveFn = (key: string, value: unknown) => void | Promise<unknown>;
+
+export interface DebouncedSave {
+  /** Queue a save for `key`, resetting that key's debounce timer. */
+  trigger: (key: string, value: unknown) => void;
+  /**
+   * Run every pending save immediately and wait for them to settle.
+   * Call this before navigating away or before an action that makes the
+   * record read-only, otherwise the in-flight edit is lost.
+   */
+  flush: () => Promise<void>;
+}
+
 /**
- * Returns a debounced function that persists a value keyed by a string.
- * Pending saves are flushed on unmount. Each key debounces independently.
+ * Debounced persistence keyed by a string — each key debounces independently.
+ * Pending saves are flushed on unmount, and can be flushed explicitly via
+ * `flush()` when you need to await them.
  */
-export function useDebouncedSave(
-  save: (key: string, value: unknown) => void,
-  delay = 600
-) {
+export function useDebouncedSave(save: SaveFn, delay = 600): DebouncedSave {
   const timers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const latest = useRef<Map<string, unknown>>(new Map());
   const saveRef = useRef(save);
@@ -31,6 +42,17 @@ export function useDebouncedSave(
     [delay]
   );
 
+  const flush = useCallback(async () => {
+    const pending: Promise<unknown>[] = [];
+    for (const [key, t] of timers.current.entries()) {
+      clearTimeout(t);
+      const result = saveRef.current(key, latest.current.get(key));
+      if (result) pending.push(Promise.resolve(result));
+    }
+    timers.current.clear();
+    await Promise.allSettled(pending);
+  }, []);
+
   useEffect(() => {
     const timersMap = timers.current;
     const latestMap = latest.current;
@@ -43,5 +65,5 @@ export function useDebouncedSave(
     };
   }, []);
 
-  return trigger;
+  return { trigger, flush };
 }

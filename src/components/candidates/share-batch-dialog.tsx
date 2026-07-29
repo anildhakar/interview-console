@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { api } from "@/lib/client";
+import { api, copyToClipboard } from "@/lib/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -83,9 +83,10 @@ export function ShareBatchDialog({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  navigator.clipboard.writeText(url);
-                  toast.success("Link copied");
+                onClick={async () => {
+                  const ok = await copyToClipboard(url);
+                  if (ok) toast.success("Link copied");
+                  else toast.error("Couldn't copy — select the link and copy manually");
                 }}
               >
                 <Copy className="h-4 w-4" />

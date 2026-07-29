@@ -20,7 +20,7 @@ import {
 import type { Candidate, CandidateStatus, Role } from "@/lib/types";
 import { CANDIDATE_STATUSES } from "@/lib/types";
 import type { RoundSummary } from "@/lib/pipeline";
-import { api } from "@/lib/client";
+import { api, absoluteUrl, copyToClipboard } from "@/lib/client";
 import { canInterview } from "@/lib/session";
 import { Button } from "@/components/ui/button";
 import {
@@ -106,9 +106,9 @@ export function CandidateDetail({
     }
   }
 
-  const shareUrl = shareToken
-    ? `${typeof window !== "undefined" ? window.location.origin : ""}/report/${shareToken}`
-    : null;
+  // Relative on purpose: reading window.location during render makes the server
+  // and client markup disagree. The absolute URL is built at click time.
+  const sharePath = shareToken ? `/report/${shareToken}` : null;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6">
@@ -225,21 +225,22 @@ export function CandidateDetail({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {shareUrl && (
+            {sharePath && (
               <>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => {
-                    navigator.clipboard.writeText(shareUrl);
-                    toast.success("Link copied");
+                  onClick={async () => {
+                    const ok = await copyToClipboard(absoluteUrl(sharePath));
+                    if (ok) toast.success("Link copied");
+                    else toast.error("Couldn't copy — select the link and copy manually");
                   }}
                 >
                   <Copy className="h-4 w-4" />
                   Copy
                 </Button>
                 <Button asChild variant="outline" size="sm">
-                  <a href={shareUrl} target="_blank" rel="noreferrer">
+                  <a href={sharePath} target="_blank" rel="noreferrer">
                     <ExternalLink className="h-4 w-4" />
                     Open
                   </a>

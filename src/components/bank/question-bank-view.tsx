@@ -47,6 +47,15 @@ export function QuestionBankView({
   const [openCats, setOpenCats] = useState<Set<string>>(new Set());
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Question | null>(null);
+  // Bumped on every open so the dialog remounts with fresh field state.
+  // Without this the form keeps whichever question it was first opened with.
+  const [formKey, setFormKey] = useState(0);
+
+  function openForm(question: Question | null) {
+    setEditing(question);
+    setFormKey((k) => k + 1);
+    setFormOpen(true);
+  }
   const [importOpen, setImportOpen] = useState(false);
   const [deleteBank, setDeleteBank] = useState<QuestionBank | null>(null);
   const [deleteQ, setDeleteQ] = useState<Question | null>(null);
@@ -187,13 +196,7 @@ export function QuestionBankView({
                   Delete bank
                 </Button>
               )}
-              <Button
-                size="sm"
-                onClick={() => {
-                  setEditing(null);
-                  setFormOpen(true);
-                }}
-              >
+              <Button size="sm" onClick={() => openForm(null)}>
                 <Plus className="h-4 w-4" />
                 Add question
               </Button>
@@ -262,10 +265,7 @@ export function QuestionBankView({
                                   variant="ghost"
                                   size="icon"
                                   className="h-8 w-8"
-                                  onClick={() => {
-                                    setEditing(q);
-                                    setFormOpen(true);
-                                  }}
+                                  onClick={() => openForm(q)}
                                 >
                                   <Pencil className="h-4 w-4" />
                                 </Button>
@@ -293,6 +293,7 @@ export function QuestionBankView({
 
       {activeBank && (
         <QuestionFormDialog
+          key={formKey}
           open={formOpen}
           onOpenChange={setFormOpen}
           bankId={activeBank.id}

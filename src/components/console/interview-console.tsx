@@ -115,28 +115,43 @@ export function InterviewConsole({
       : null;
 
   // ---- persistence helpers ----
-  const saveQuestionField = useDebouncedSave((key, value) => {
-    const rqId = Number(key.split(":")[1]);
-    api(`/api/rounds/${round.id}/questions/${rqId}`, {
-      method: "PATCH",
-      body: JSON.stringify({ notes: value }),
-    }).catch((e) => toast.error((e as Error).message));
-  });
+  // Each returns its promise so `flush()` can await pending saves before we
+  // complete the round (which makes it read-only server-side).
+  const { trigger: saveQuestionField, flush: flushQuestionFields } =
+    useDebouncedSave((key, value) => {
+      const rqId = Number(key.split(":")[1]);
+      return api(`/api/rounds/${round.id}/questions/${rqId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ notes: value }),
+      }).catch((e) => toast.error((e as Error).message));
+    });
 
-  const saveOverallNotes = useDebouncedSave((_key, value) => {
-    api(`/api/rounds/${round.id}`, {
-      method: "PATCH",
-      body: JSON.stringify({ overall_notes: value }),
-    }).catch((e) => toast.error((e as Error).message));
-  });
+  const { trigger: saveOverallNotes, flush: flushOverallNotes } =
+    useDebouncedSave((_key, value) => {
+      return api(`/api/rounds/${round.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ overall_notes: value }),
+      }).catch((e) => toast.error((e as Error).message));
+    });
 
-  const saveRatingNote = useDebouncedSave((key, value) => {
-    const param = key.slice("rating:".length);
-    api(`/api/rounds/${round.id}/ratings`, {
-      method: "PUT",
-      body: JSON.stringify({ param_name: param, note: value }),
-    }).catch((e) => toast.error((e as Error).message));
-  });
+  const { trigger: saveRatingNote, flush: flushRatingNotes } = useDebouncedSave(
+    (key, value) => {
+      const param = key.slice("rating:".length);
+      return api(`/api/rounds/${round.id}/ratings`, {
+        method: "PUT",
+        body: JSON.stringify({ param_name: param, note: value }),
+      }).catch((e) => toast.error((e as Error).message));
+    }
+  );
+
+  /** Persist any in-flight debounced edits before a status change. */
+  async function flushPendingSaves() {
+    await Promise.all([
+      flushQuestionFields(),
+      flushOverallNotes(),
+      flushRatingNotes(),
+    ]);
+  }
 
   // ---- question actions ----
   const addQuestion = useCallback(
@@ -305,6 +320,9 @@ export function InterviewConsole({
 
   async function completeRound() {
     try {
+      // Persist any just-typed notes first — completing makes the round
+      // read-only server-side, so a pending save would be rejected and lost.
+      await flushPendingSaves();
       await api(`/api/rounds/${round.id}`, {
         method: "PATCH",
         body: JSON.stringify({ status: "completed" }),
