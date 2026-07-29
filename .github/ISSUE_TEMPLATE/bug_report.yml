@@ -1,0 +1,45 @@
+name: Bug report
+description: Something behaves incorrectly
+labels: ["type: bug"]
+body:
+  - type: textarea
+    id: what-happens
+    attributes:
+      label: What happens
+      description: What did you see? Include the exact error text if there is one.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What should happen instead
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Numbered steps someone else can follow to see it themselves.
+      placeholder: |
+        1. Sign in as priya.hr
+        2. Go to Candidates
+        3. Select 3 candidates
+        4. Type into the search box
+        5. The selection count still says 3, but only 1 is shared
+    validations:
+      required: true
+
+  - type: input
+    id: where
+    attributes:
+      label: Where
+      description: Page or component, if you know it.
+      placeholder: /candidates — candidates-view.tsx
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: Screenshots, browser, screen size, whether it's consistent.

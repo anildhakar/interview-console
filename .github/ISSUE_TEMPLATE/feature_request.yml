@@ -1,0 +1,35 @@
+name: Feature or improvement
+description: Suggest something new, or a way to make something better
+labels: ["type: feature"]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: What should a user be able to do that they can't today?
+    validations:
+      required: true
+
+  - type: textarea
+    id: why
+    attributes:
+      label: Why it's worth doing
+      description: What's annoying or slow right now without it?
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: How do we know it's finished? Checkable statements.
+      value: |
+        - [ ]
+        - [ ] Works in all six themes
+        - [ ] Works at 375px and 1280px
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Sketches, links, or components that already exist and could be reused.

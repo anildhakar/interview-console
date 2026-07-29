@@ -136,6 +136,21 @@ export interface RoundRating {
   is_custom: number;
 }
 
+/** A saved set of questions that can be applied to a round in one action. */
+export interface InterviewTemplate {
+  id: number;
+  name: string;
+  description: string | null;
+  created_by: number | null;
+  created_by_name?: string | null;
+  created_at: string;
+  question_count?: number;
+  questions?: Pick<
+    Question,
+    "id" | "question" | "category" | "difficulty" | "qtype"
+  >[];
+}
+
 export const DEFAULT_RATING_PARAMS = [
   "Attitude",
   "Problem Solving",

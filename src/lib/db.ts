@@ -136,7 +136,33 @@ CREATE TABLE IF NOT EXISTS candidate_batch_items (
   PRIMARY KEY (batch_id, candidate_id)
 );
 
+-- Starred questions, per user.
+CREATE TABLE IF NOT EXISTS question_favorites (
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  question_id INTEGER NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  PRIMARY KEY (user_id, question_id)
+);
+
+-- Reusable sets of questions that can be applied to a round in one go.
+CREATE TABLE IF NOT EXISTS interview_templates (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  description TEXT,
+  created_by INTEGER REFERENCES users(id),
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS interview_template_items (
+  template_id INTEGER NOT NULL REFERENCES interview_templates(id) ON DELETE CASCADE,
+  question_id INTEGER NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (template_id, question_id)
+);
+
 CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_favorites_user ON question_favorites(user_id);
+CREATE INDEX IF NOT EXISTS idx_template_items ON interview_template_items(template_id);
 CREATE INDEX IF NOT EXISTS idx_rounds_candidate ON rounds(candidate_id);
 CREATE INDEX IF NOT EXISTS idx_rounds_interviewer ON rounds(interviewer_id);
 CREATE INDEX IF NOT EXISTS idx_questions_bank ON questions(bank_id);

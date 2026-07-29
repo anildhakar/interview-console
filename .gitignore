@@ -45,3 +45,6 @@ next-env.d.ts
 
 # local machine-specific tooling config
 /.claude/
+
+# generated demo logins — shared directly, never committed
+demo-credentials.txt

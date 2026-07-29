@@ -127,6 +127,15 @@ export function listQuestions(bankId: number, includeArchived = false): Question
   return getDb().prepare(sql).all(bankId) as Question[];
 }
 
+/** Question ids the given user has starred. */
+export function listFavoriteQuestionIds(userId: number): number[] {
+  return (
+    getDb()
+      .prepare("SELECT question_id FROM question_favorites WHERE user_id = ?")
+      .all(userId) as { question_id: number }[]
+  ).map((r) => r.question_id);
+}
+
 export function listAllActiveQuestions(): (Question & { bank_name: string })[] {
   return getDb()
     .prepare(
