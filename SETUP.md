@@ -78,17 +78,9 @@ Still stuck? Two fallbacks:
 The app stores everything in a local SQLite file — there's no database server to
 install.
 
-Start the app once so it can create the database and load the question banks:
-
-```powershell
-npm run dev
-```
-
-Wait for `✓ Ready`, open <http://localhost:3000> to confirm it loads, then stop
-the server with `Ctrl+C`.
-
-Now load the demo data — 12 fictional candidates with interview histories, plus
-accounts for every role:
+One command creates the database, loads the question banks, and fills it with
+12 fictional candidates with full interview histories plus an account for every
+role:
 
 ```powershell
 npm run seed:demo

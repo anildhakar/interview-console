@@ -17,21 +17,98 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import path from "path";
 import fs from "fs";
+import { SCHEMA } from "../src/lib/schema.mjs";
 
 const DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), "data");
 const DB_PATH = path.join(DATA_DIR, "app.db");
 const RESET = process.argv.includes("--reset");
 const PASSWORD = "demo1234";
 
-if (!fs.existsSync(DB_PATH)) {
-  console.error(
-    `No database at ${DB_PATH}.\nStart the app once (npm run dev) so it can create the schema, then re-run this.`
+// Create the database if it doesn't exist yet, so this works on a fresh clone
+// without having to start the app first. Uses the same schema the app does.
+fs.mkdirSync(path.join(DATA_DIR, "uploads"), { recursive: true });
+const db = new Database(DB_PATH);
+db.pragma("journal_mode = WAL");
+db.pragma("foreign_keys = ON");
+db.exec(SCHEMA);
+
+// Everything the app itself would create on first boot, so this script works on
+// a fresh clone: the built-in admin account and the built-in question banks.
+function ensureBaseData() {
+  if (db.prepare("SELECT COUNT(*) AS c FROM users").get().c === 0) {
+    db.prepare(
+      `INSERT INTO users (username, display_name, password_hash, role, must_change_password)
+       VALUES ('admin', 'Admin', ?, 'admin', 0)`
+    ).run(bcrypt.hashSync("admin123", 10));
+  }
+
+  const have = db.prepare("SELECT COUNT(*) AS c FROM questions").get().c;
+  if (have > 0) return;
+
+  const seedDir = path.join(process.cwd(), "src", "lib", "seed");
+  const read = (f) =>
+    JSON.parse(fs.readFileSync(path.join(seedDir, f), "utf8"));
+
+  const banks = [
+    {
+      name: "Frontend Core",
+      description:
+        "Built-in bank covering HTML, CSS, JavaScript, React and Web Fundamentals across easy/medium/hard levels.",
+      files: ["html.json", "css.json", "javascript.json", "react.json", "web-fundamentals.json"],
+    },
+    {
+      name: "Telephonic Screening",
+      description:
+        "Questions for phone screens: background, technical screening, collaboration, ownership and culture fit.",
+      files: ["telephonic.json"],
+    },
+  ];
+
+  const insertBank = db.prepare(
+    "INSERT INTO question_banks (name, description, is_seed) VALUES (?, ?, 1)"
   );
-  process.exit(1);
+  const insertQ = db.prepare(
+    `INSERT INTO questions (bank_id, category, difficulty, qtype, question, answer_hints, follow_ups)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`
+  );
+
+  for (const bank of banks) {
+    if (db.prepare("SELECT id FROM question_banks WHERE name = ?").get(bank.name)) continue;
+    const info = insertBank.run(bank.name, bank.description);
+    const questions = bank.files.flatMap(read);
+    const tx = db.transaction(() => {
+      for (const q of questions) {
+        insertQ.run(
+          info.lastInsertRowid,
+          q.category,
+          q.difficulty,
+          q.qtype,
+          q.question,
+          q.answer_hints ?? null,
+          q.follow_ups?.length ? JSON.stringify(q.follow_ups) : null
+        );
+      }
+    });
+    tx();
+  }
+
+  // Defaults the app expects to find.
+  const setSetting = db.prepare(
+    "INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)"
+  );
+  setSetting.run(
+    "rating_params",
+    JSON.stringify(["Attitude", "Problem Solving", "Communication", "Fundamental Knowledge"])
+  );
+  setSetting.run(
+    "round_presets",
+    JSON.stringify(["Telephonic Round", "Tech Round 1", "Tech Round 2"])
+  );
+  setSetting.run("default_theme", "graphite");
+  setSetting.run("telephonic_preset_added", "1");
 }
 
-const db = new Database(DB_PATH);
-db.pragma("foreign_keys = ON");
+ensureBaseData();
 
 // ---------------------------------------------------------------- guard rails
 const existing = db.prepare("SELECT COUNT(*) AS c FROM candidates").get().c;
