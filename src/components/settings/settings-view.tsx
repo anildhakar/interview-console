@@ -140,9 +140,11 @@ function ListEditor({
   placeholder: string;
 }) {
   const [items, setItems] = useState<string[]>(initial);
-  const [draft, setDraft] = useState("");
-  const [saving, setSaving] = useState(false);
-  const dirty = JSON.stringify(items) !== JSON.stringify(initial);
+const [savedItems, setSavedItems] = useState<string[]>(initial);
+const [draft, setDraft] = useState("");
+const [saving, setSaving] = useState(false);
+
+const dirty = JSON.stringify(items) !== JSON.stringify(savedItems);
 
   function add() {
     const v = draft.trim();
@@ -161,11 +163,13 @@ function ListEditor({
       return;
     }
     setSaving(true);
+    
     try {
       await api("/api/settings", {
         method: "PUT",
         body: JSON.stringify({ [settingKey]: items }),
       });
+        setSavedItems(items);  //api successfully saved, update savedItems to current items(added this line)
       toast.success(`${title} saved`);
     } catch (err) {
       toast.error((err as Error).message);
