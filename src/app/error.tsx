@@ -21,10 +21,13 @@ export default function Error({ error, reset }: ErrorProps) {
         An unexpected error occurred while loading this page.
       </p>
 
-      <Button
-        className="mt-6"
-        onClick={() => reset()}
-      >
+      {error.message && (
+        <p className="mt-2 max-w-md text-xs text-muted-foreground/80">
+          {error.message}
+        </p>
+      )}
+
+      <Button className="mt-6" onClick={() => reset()}>
         Try Again
       </Button>
     </div>

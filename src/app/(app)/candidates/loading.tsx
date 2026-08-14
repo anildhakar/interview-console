@@ -23,7 +23,10 @@ export default function Loading() {
           </div>
         </div>
         {Array.from({ length: 6 }).map((_, index) => (
-          <div key={index} className="flex items-center gap-3 border-b px-4 py-3 last:border-b-0">
+          <div
+            key={index}
+            className="flex items-center gap-3 border-b px-4 py-3 last:border-b-0"
+          >
             <Skeleton className="h-4 w-4 rounded" />
             <Skeleton className="h-8 w-8 rounded-full" />
             <div className="flex-1 space-y-2">
