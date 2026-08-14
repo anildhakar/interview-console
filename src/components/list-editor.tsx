@@ -24,11 +24,12 @@ export function ListEditor({
   placeholder,
 }: ListEditorProps) {
   const [items, setItems] = useState<string[]>(initial);
+  const [savedItems, setSavedItems] = useState<string[]>(initial);
   const [draft, setDraft] = useState("");
   const [saving, setSaving] = useState(false);
 
   const dirty =
-    JSON.stringify(items) !== JSON.stringify(initial);
+    JSON.stringify(items) !== JSON.stringify(savedItems);
 
   function add() {
     const value = draft.trim();
@@ -72,6 +73,7 @@ export function ListEditor({
         }),
       });
 
+      setSavedItems(items);
       toast.success(`${title} saved`);
     } catch (err) {
       toast.error((err as Error).message);
