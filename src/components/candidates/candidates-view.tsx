@@ -11,7 +11,6 @@ import { StatusBadge, ScoreChip, RoundStatusBadge } from "@/components/badges";
 import { AddCandidateDialog } from "@/components/candidates/add-candidate-dialog";
 import { ShareBatchDialog } from "@/components/candidates/share-batch-dialog";
 import { cn } from "@/lib/utils";
-
 import { CandidateAvatar } from "@/components/candidate-avatar";
 import { RelativeTime } from "@/components/relative-time";
 
