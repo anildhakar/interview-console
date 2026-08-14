@@ -25,7 +25,7 @@ vi.mock("@/components/theme-provider", () => ({
  * Save. The toast says it saved, but the Save button stays on screen forever,
  * so you can't tell whether your change actually persisted.
  */
-describe.skip("ticket 5 — settings save button", () => {
+describe("ticket 5 — settings save button", () => {
   const props = {
     role: "admin" as const,
     currentUserId: 1,
