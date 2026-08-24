@@ -278,17 +278,19 @@ export function CandidatesView({
   }
 
 
-  useEffect(() => {
+ useEffect(() => {
+  const timer = window.setTimeout(() => {
     setQuery(urlQuery);
-  }, [urlQuery]);
+  }, 0);
 
+  return () => window.clearTimeout(timer);
+}, [urlQuery]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
       updateUrl(
         {
           q: query.trim() ? query.trim() : null,
-
 
           page: null,
         },
