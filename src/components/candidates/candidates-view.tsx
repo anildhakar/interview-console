@@ -1,8 +1,21 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import Link from "next/link";
-import { Search, Users, Link2, X } from "lucide-react";
+import {
+  Search,
+  Users,
+  Link2,
+  X,
+} from "lucide-react";
+import {
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 
 import type { CandidateSummary } from "@/lib/pipeline";
 import type { Role } from "@/lib/types";
@@ -40,13 +53,7 @@ type SortState = {
   direction: SortDirection;
 };
 
-/**
- * Candidate score is the average of completed rounds'
- * question_avg values.
- *
- * Rounds without a completed status are ignored.
- * If no completed round has a score, the candidate score is null.
- */
+// Candidate ke completed rounds ka average score nikalta hai.
 export function candidateScore(
   candidate: CandidateSummary
 ): number | null {
@@ -68,15 +75,7 @@ export function candidateScore(
   );
 }
 
-/**
- * Compare two candidates for the requested sort column/direction.
- *
- * Rules:
- * - Names are sorted case-insensitively.
- * - Scores are based on completed rounds only.
- * - Candidates without a score always go last.
- * - Ascending and descending work consistently.
- */
+// Candidate ko selected column aur direction ke according compare karta hai.
 export function compareCandidates(
   a: CandidateSummary,
   b: CandidateSummary,
@@ -85,12 +84,7 @@ export function compareCandidates(
 ): number {
   const multiplier = direction === "asc" ? 1 : -1;
 
-  /*
-   * Score sorting
-   *
-   * Missing scores must ALWAYS be last,
-   * regardless of ascending or descending.
-   */
+  // Score sort karte time jiska score nahi hai wo hamesha last rahega.
   if (key === "score") {
     const aScore = candidateScore(a);
     const bScore = candidateScore(b);
@@ -112,33 +106,74 @@ export function compareCandidates(
 
   let result = 0;
 
-  /*
-   * Name sorting
-   *
-   * Lowercase both names so:
-   *
-   * alex chen
-   * Zara Whitfield
-   *
-   * becomes:
-   *
-   * alex chen
-   * zara whitfield
-   */
+  // Name ko case-insensitive way mein sort karta hai.
   if (key === "name") {
     const aName = a.name.trim().toLowerCase();
     const bName = b.name.trim().toLowerCase();
 
     result = aName.localeCompare(bName);
-  } else if (key === "status") {
+  }
+
+
+  else if (key === "status") {
     result = a.status.localeCompare(b.status);
-  } else if (key === "added") {
+  }
+
+
+  else if (key === "added") {
     result =
       new Date(a.created_at).getTime() -
       new Date(b.created_at).getTime();
   }
 
   return result * multiplier;
+}
+
+
+function isValidFilter(
+  value: string | null
+): value is Filter {
+  return (
+    value === "all" ||
+    value === "mine" ||
+    value === "assigned"
+  );
+}
+
+
+function isValidSortKey(
+  value: string | null
+): value is SortKey {
+  return (
+    value === "name" ||
+    value === "status" ||
+    value === "added" ||
+    value === "score"
+  );
+}
+
+
+function isValidSortDirection(
+  value: string | null
+): value is SortDirection {
+  return value === "asc" || value === "desc";
+}
+
+
+function getPageFromUrl(
+  value: string | null
+): number {
+  if (!value) {
+    return 1;
+  }
+
+  const parsed = Number(value);
+
+  if (!Number.isInteger(parsed) || parsed < 1) {
+    return 1;
+  }
+
+  return parsed;
 }
 
 export function CandidatesView({
@@ -148,32 +183,124 @@ export function CandidatesView({
 }: {
   candidates: CandidateSummary[];
   currentUserId: number;
-  role: Role;
+  role?: Role;
 }) {
-  const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState<Filter>("all");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // URL se query, filter, sort, direction aur page nikalta hai.
+  const urlQuery = searchParams.get("q") ?? "";
+
+  const urlFilterValue = searchParams.get("filter");
+
+  const urlSortValue = searchParams.get("sort");
+
+  const urlDirectionValue = searchParams.get("dir");
+
+  const urlPageValue = searchParams.get("page");
+
+
+  const urlFilter: Filter = isValidFilter(urlFilterValue)
+    ? urlFilterValue
+    : "all";
+
+
+  const urlSortKey: SortKey = isValidSortKey(urlSortValue)
+    ? urlSortValue
+    : "name";
+
+
+  const urlDirection: SortDirection =
+    isValidSortDirection(urlDirectionValue)
+      ? urlDirectionValue
+      : "asc";
+
+
+  const urlPage = getPageFromUrl(urlPageValue);
+
+
+  const [query, setQuery] = useState(urlQuery);
+
   const [selected, setSelected] = useState<Set<number>>(
     new Set()
   );
+
   const [shareOpen, setShareOpen] = useState(false);
 
-  /*
-   * IMPORTANT:
-   * Internal direction is ONLY:
-   *
-   * "asc" | "desc"
-   *
-   * aria-sort is converted separately.
-   */
-  const [sort, setSort] = useState<SortState>({
-    key: "name",
-    direction: "asc",
-  });
+  const filter = urlFilter;
 
-  const [page, setPage] = useState(1);
+  const sort: SortState = {
+    key: urlSortKey,
+    direction: urlDirection,
+  };
+
+  const page = urlPage;
 
   const PAGE_SIZE = 10;
 
+
+  function updateUrl(
+    updates: Record<string, string | null>,
+    method: "push" | "replace" = "push"
+  ) {
+    const params = new URLSearchParams(
+      searchParams.toString()
+    );
+
+    Object.entries(updates).forEach(
+      ([key, value]) => {
+        // null ya empty value hone par parameter remove kar dete hain.
+        if (value === null || value === "") {
+          params.delete(key);
+        } else {
+          params.set(key, value);
+        }
+      }
+    );
+
+    const queryString = params.toString();
+
+    const nextUrl = queryString ? `?${queryString}` : "";
+
+    const currentUrl = searchParams.toString();
+
+
+    if (queryString === currentUrl) {
+      return;
+    }
+
+    // Search ke liye replace aur filter/sort/page ke liye push use hota hai.
+    if (method === "replace") {
+      router.replace(nextUrl);
+    } else {
+      router.push(nextUrl);
+    }
+  }
+
+
+  useEffect(() => {
+    setQuery(urlQuery);
+  }, [urlQuery]);
+
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      updateUrl(
+        {
+          q: query.trim() ? query.trim() : null,
+
+
+          page: null,
+        },
+        "replace"
+      );
+    }, 300);
+
+    return () => window.clearTimeout(timer);
+
+  }, [query]);
+
+  // Candidate ko select/unselect karta hai.
   function toggle(id: number) {
     setSelected((prev) => {
       const next = new Set(prev);
@@ -188,45 +315,73 @@ export function CandidatesView({
     });
   }
 
+  // Sort header click hone par URL mein sort change karta hai.
   function handleSort(key: SortKey) {
-    setPage(1);
+    let nextDirection: SortDirection;
 
-    setSort((prev) => {
-      if (prev.key === key) {
-        return {
-          key,
-          direction:
-            prev.direction === "asc" ? "desc" : "asc",
-        };
-      }
 
-      return {
-        key,
-        direction: "asc",
-      };
-    });
+    if (sort.key === key) {
+      nextDirection =
+        sort.direction === "asc" ? "desc" : "asc";
+    } else {
+      nextDirection = "asc";
+    }
+
+
+    const isDefaultSort =
+      key === "name" && nextDirection === "asc";
+
+    updateUrl(
+      {
+        sort: isDefaultSort ? null : key,
+        dir: isDefaultSort ? null : nextDirection,
+
+
+        page: null,
+      },
+      "push"
+    );
   }
 
-  function handleQueryChange(value: string) {
-    setQuery(value);
-    setPage(1);
-  }
 
   function handleFilterChange(nextFilter: Filter) {
-    setFilter(nextFilter);
-    setPage(1);
+    updateUrl(
+      {
+
+        filter:
+          nextFilter === "all" ? null : nextFilter,
+
+
+        page: null,
+      },
+      "push"
+    );
   }
+
+
+  function handlePageChange(nextPage: number) {
+    updateUrl(
+      {
+
+        page: nextPage <= 1 ? null : String(nextPage),
+      },
+      "push"
+    );
+  }
+
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
 
     return candidates.filter((c) => {
+
       if (
         filter === "mine" &&
         c.created_by !== currentUserId
       ) {
         return false;
       }
+
 
       if (
         filter === "assigned" &&
@@ -237,9 +392,11 @@ export function CandidatesView({
         return false;
       }
 
+
       if (!q) {
         return true;
       }
+
 
       return (
         c.name.toLowerCase().includes(q) ||
@@ -253,11 +410,8 @@ export function CandidatesView({
     });
   }, [candidates, query, filter, currentUserId]);
 
+  // Filtered candidates ko selected sort ke according arrange karta hai.
   const sorted = useMemo(() => {
-    /*
-     * IMPORTANT:
-     * Never mutate candidates or filtered.
-     */
     return [...filtered].sort((a, b) =>
       compareCandidates(
         a,
@@ -268,15 +422,18 @@ export function CandidatesView({
     );
   }, [filtered, sort]);
 
+
   const totalPages = Math.max(
     1,
     Math.ceil(sorted.length / PAGE_SIZE)
   );
 
+  // URL mein page 99 ho lekin actual pages 2 ho to page 2 show karega.
   const safePage = Math.min(page, totalPages);
 
   const startIndex = (safePage - 1) * PAGE_SIZE;
 
+  // Current page ke candidates.
   const paginated = sorted.slice(
     startIndex,
     startIndex + PAGE_SIZE
@@ -294,11 +451,21 @@ export function CandidatesView({
     key: Filter;
     label: string;
   }[] = [
-    { key: "all", label: "All" },
-    { key: "mine", label: "Added by me" },
-    { key: "assigned", label: "Assigned to me" },
+    {
+      key: "all",
+      label: "All",
+    },
+    {
+      key: "mine",
+      label: "Added by me",
+    },
+    {
+      key: "assigned",
+      label: "Assigned to me",
+    },
   ];
 
+  // Sort button ke paas ↑, ↓ ya ↕ show karta hai.
   function sortIndicator(key: SortKey) {
     if (sort.key !== key) {
       return "↕";
@@ -307,6 +474,7 @@ export function CandidatesView({
     return sort.direction === "asc" ? "↑" : "↓";
   }
 
+  // Table header ke aria-sort attribute ko set karta hai.
   function ariaSort(key: SortKey) {
     if (sort.key !== key) {
       return "none" as const;
@@ -327,8 +495,7 @@ export function CandidatesView({
 
           <p className="text-sm text-muted-foreground">
             {filtered.length} candidate
-            {filtered.length === 1 ? "" : "s"} in the
-            pipeline
+            {filtered.length === 1 ? "" : "s"} in the pipeline
           </p>
         </div>
 
@@ -340,10 +507,9 @@ export function CandidatesView({
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
 
           <Input
+            data-testid="search-input"
             value={query}
-            onChange={(e) =>
-              handleQueryChange(e.target.value)
-            }
+            onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by name, role or company…"
             className="pl-8"
           />
@@ -511,7 +677,10 @@ export function CandidatesView({
               </TableRow>
             </TableHeader>
 
-            <TableBody className="divide-y">
+            <TableBody
+              data-slot="table-body"
+              className="divide-y"
+            >
               {paginated.map((c) => (
                 <TableRow
                   key={c.id}
@@ -583,8 +752,7 @@ export function CandidatesView({
                               R{r.round_number}
                             </span>
 
-                            {r.status ===
-                            "completed" ? (
+                            {r.status === "completed" ? (
                               <ScoreChip
                                 score={r.question_avg}
                               />
@@ -604,9 +772,7 @@ export function CandidatesView({
                   </TableCell>
 
                   <TableCell className="px-4 py-3 text-muted-foreground">
-                    <RelativeTime
-                      value={c.created_at}
-                    />
+                    <RelativeTime value={c.created_at} />
 
                     {c.created_by_name && (
                       <div className="text-xs">
@@ -621,9 +787,7 @@ export function CandidatesView({
                         —
                       </span>
                     ) : (
-                      <ScoreChip
-                        score={candidateScore(c)}
-                      />
+                      <ScoreChip score={candidateScore(c)} />
                     )}
                   </TableCell>
                 </TableRow>
@@ -639,8 +803,7 @@ export function CandidatesView({
             data-testid="page-info"
             className="text-sm text-muted-foreground"
           >
-            {visibleStart}–{visibleEnd} of{" "}
-            {sorted.length}
+            {visibleStart}–{visibleEnd} of {sorted.length}
           </div>
 
           <div className="flex items-center gap-2">
@@ -651,8 +814,8 @@ export function CandidatesView({
               data-testid="page-prev"
               disabled={safePage === 1}
               onClick={() =>
-                setPage((prev) =>
-                  Math.max(1, prev - 1)
+                handlePageChange(
+                  Math.max(1, safePage - 1)
                 )
               }
             >
@@ -666,10 +829,10 @@ export function CandidatesView({
               data-testid="page-next"
               disabled={safePage >= totalPages}
               onClick={() =>
-                setPage((prev) =>
+                handlePageChange(
                   Math.min(
                     totalPages,
-                    prev + 1
+                    safePage + 1
                   )
                 )
               }
@@ -689,9 +852,7 @@ export function CandidatesView({
 
             <Button
               size="sm"
-              onClick={() =>
-                setShareOpen(true)
-              }
+              onClick={() => setShareOpen(true)}
             >
               <Link2 className="h-4 w-4" />
               Share link
