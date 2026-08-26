@@ -5,13 +5,19 @@ import Link from "next/link";
 import { Search, Users, Link2, X } from "lucide-react";
 import type { CandidateSummary } from "@/lib/pipeline";
 import type { Role } from "@/lib/types";
-import { fmtDate } from "@/lib/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { StatusBadge, ScoreChip, RoundStatusBadge } from "@/components/badges";
+import {
+  StatusBadge,
+  ScoreChip,
+  RoundStatusBadge,
+} from "@/components/badges";
 import { AddCandidateDialog } from "@/components/candidates/add-candidate-dialog";
 import { ShareBatchDialog } from "@/components/candidates/share-batch-dialog";
+import { EmptyState } from "@/components/empty-state";
 import { cn } from "@/lib/utils";
+import { CandidateAvatar } from "@/components/candidate-avatar";
+import { RelativeTime } from "@/components/relative-time";
 
 type Filter = "all" | "mine" | "assigned";
 
@@ -33,28 +39,42 @@ export function CandidatesView({
   function toggle(id: number) {
     setSelected((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+
       return next;
-    });
+    }); 
   }
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
+
     return candidates.filter((c) => {
-      if (filter === "mine" && c.created_by !== currentUserId) return false;
+      if (filter === "mine" && c.created_by !== currentUserId) {
+        return false;
+      }
+
       if (
         filter === "assigned" &&
         !c.rounds.some((r) => r.interviewer_id === currentUserId)
-      )
+      ) {
         return false;
-      if (!q) return true;
+      }
+
+      if (!q) {
+        return true;
+      }
+
       return (
         c.name.toLowerCase().includes(q) ||
         (c.applied_role ?? "").toLowerCase().includes(q) ||
         (c.current_company ?? "").toLowerCase().includes(q)
       );
-    });
+    }); 
   }, [candidates, query, filter, currentUserId]);
 
   // The number of selected candidates that are visible in the current filter.
@@ -87,17 +107,20 @@ export function CandidatesView({
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">Candidates</h1>
+
           <p className="text-sm text-muted-foreground">
             {candidates.length} candidate{candidates.length === 1 ? "" : "s"} in
             the pipeline
           </p>
         </div>
+
         <AddCandidateDialog />
       </div>
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <div className="relative flex-1 min-w-56">
+        <div className="relative min-w-56 flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+
           <Input
             data-testid="search-input"
             value={query}
@@ -106,6 +129,7 @@ export function CandidatesView({
             className="pl-8"
           />
         </div>
+
         <div className="flex items-center gap-1 rounded-lg border bg-card p-1">
           {filters.map((f) => (
             <button
@@ -125,7 +149,26 @@ export function CandidatesView({
       </div>
 
       {filtered.length === 0 ? (
-        <EmptyState hasAny={candidates.length > 0} />
+        <EmptyState
+          icon={Users}
+          title={
+            candidates.length > 0
+              ? "No candidates match your filters"
+              : "No candidates yet"
+          }
+          description={
+            candidates.length > 0
+              ? "Try clearing the search or switching filters."
+              : "Add your first candidate to start tracking interviews."
+          }
+          action={
+            candidates.length === 0 ? (
+              <AddCandidateDialog
+                trigger={<Button>Add candidate</Button>}
+              />
+            ) : undefined
+          }
+        />
       ) : (
         <div className="overflow-hidden rounded-xl border bg-card">
           <table className="w-full text-sm">
@@ -163,9 +206,19 @@ export function CandidatesView({
                     }}
                   />
                 </th>
-                <th className="px-4 py-2.5 font-medium">Candidate</th>
-                <th className="px-4 py-2.5 font-medium">Rounds</th>
-                <th className="px-4 py-2.5 font-medium">Status</th>
+
+                <th className="px-4 py-2.5 font-medium">
+                  Candidate
+                </th>
+
+                <th className="px-4 py-2.5 font-medium">
+                  Rounds
+                </th>
+
+                <th className="px-4 py-2.5 font-medium">
+                  Status
+                </th>
+
                 <th className="hidden px-4 py-2.5 font-medium md:table-cell">
                   Added
                 </th>
@@ -264,6 +317,7 @@ export function CandidatesView({
               <Link2 className="h-4 w-4" />
               Share link
             </Button>
+
             <button
               onClick={() => setSelected(new Set())}
               className="flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground hover:bg-accent hover:text-foreground"
@@ -280,27 +334,6 @@ export function CandidatesView({
         onOpenChange={setShareOpen}
         candidateIds={Array.from(selected)}
       />
-    </div>
-  );
-}
-
-function EmptyState({ hasAny }: { hasAny: boolean }) {
-  return (
-    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed bg-card/50 py-16 text-center">
-      <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-        <Users className="h-6 w-6 text-muted-foreground" />
-      </div>
-      <p className="font-medium">
-        {hasAny ? "No candidates match your filters" : "No candidates yet"}
-      </p>
-      <p className="mb-4 mt-1 max-w-sm text-sm text-muted-foreground">
-        {hasAny
-          ? "Try clearing the search or switching filters."
-          : "Add your first candidate to start tracking interviews."}
-      </p>
-      {!hasAny && (
-        <AddCandidateDialog trigger={<Button>Add candidate</Button>} />
-      )}
     </div>
   );
 }

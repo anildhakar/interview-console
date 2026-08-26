@@ -13,10 +13,13 @@ import {
   Library,
   Search,
 } from "lucide-react";
+
 import type { Question, QuestionBank } from "@/lib/types";
 import { api } from "@/lib/client";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,12 +30,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+
 import { DifficultyBadge, TypeBadge } from "@/components/badges";
 import { QuestionFormDialog } from "@/components/bank/question-form-dialog";
 import { ImportDialog } from "@/components/bank/import-dialog";
+import { EmptyState } from "@/components/empty-state";
 import { cn } from "@/lib/utils";
 
-const DIFF_ORDER: Record<string, number> = { easy: 0, medium: 1, hard: 2 };
+const DIFF_ORDER: Record<string, number> = {
+  easy: 0,
+  medium: 1,
+  hard: 2,
+};
 
 export function QuestionBankView({
   banks,
@@ -42,25 +51,34 @@ export function QuestionBankView({
   questionsByBank: Record<number, Question[]>;
 }) {
   const router = useRouter();
-  const [activeBankId, setActiveBankId] = useState<number>(banks[0]?.id ?? 0);
+
+  const [activeBankId, setActiveBankId] = useState<number>(
+    banks[0]?.id ?? 0
+  );
+
   const [query, setQuery] = useState("");
   const [openCats, setOpenCats] = useState<Set<string>>(new Set());
+
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Question | null>(null);
+
   // Bumped on every open so the dialog remounts with fresh field state.
-  // Without this the form keeps whichever question it was first opened with.
   const [formKey, setFormKey] = useState(0);
+
+  const [importOpen, setImportOpen] = useState(false);
+
+  const [deleteBank, setDeleteBank] = useState<QuestionBank | null>(null);
+  const [deleteQ, setDeleteQ] = useState<Question | null>(null);
 
   function openForm(question: Question | null) {
     setEditing(question);
     setFormKey((k) => k + 1);
     setFormOpen(true);
   }
-  const [importOpen, setImportOpen] = useState(false);
-  const [deleteBank, setDeleteBank] = useState<QuestionBank | null>(null);
-  const [deleteQ, setDeleteQ] = useState<Question | null>(null);
 
-  const activeBank = banks.find((b) => b.id === activeBankId) ?? banks[0];
+  const activeBank =
+    banks.find((b) => b.id === activeBankId) ?? banks[0];
+
   const questions = questionsByBank[activeBankId] ?? [];
 
   const categories = useMemo(
@@ -70,41 +88,67 @@ export function QuestionBankView({
 
   const byCategory = useMemo(() => {
     const q = query.trim().toLowerCase();
+
     const filtered = questions.filter(
       (item) =>
         !q ||
         item.question.toLowerCase().includes(q) ||
         item.category.toLowerCase().includes(q)
     );
+
     const map = new Map<string, Question[]>();
+
     for (const item of filtered) {
-      if (!map.has(item.category)) map.set(item.category, []);
+      if (!map.has(item.category)) {
+        map.set(item.category, []);
+      }
+
       map.get(item.category)!.push(item);
     }
+
     for (const list of map.values()) {
       list.sort(
-        (a, b) => (DIFF_ORDER[a.difficulty] ?? 9) - (DIFF_ORDER[b.difficulty] ?? 9)
+        (a, b) =>
+          (DIFF_ORDER[a.difficulty] ?? 9) -
+          (DIFF_ORDER[b.difficulty] ?? 9)
       );
     }
-    return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+
+    return [...map.entries()].sort((a, b) =>
+      a[0].localeCompare(b[0])
+    );
   }, [questions, query]);
 
   function toggleCat(cat: string) {
     setOpenCats((prev) => {
-      const n = new Set(prev);
-      if (n.has(cat)) n.delete(cat);
-      else n.add(cat);
-      return n;
+      const next = new Set(prev);
+
+      if (next.has(cat)) {
+        next.delete(cat);
+      } else {
+        next.add(cat);
+      }
+
+      return next;
     });
   }
 
   async function confirmDeleteBank() {
     if (!deleteBank) return;
+
     try {
-      await api(`/api/question-banks/${deleteBank.id}`, { method: "DELETE" });
+      await api(`/api/question-banks/${deleteBank.id}`, {
+        method: "DELETE",
+      });
+
       toast.success("Bank deleted");
+
       setDeleteBank(null);
-      setActiveBankId(banks.find((b) => b.id !== deleteBank.id)?.id ?? 0);
+
+      setActiveBankId(
+        banks.find((b) => b.id !== deleteBank.id)?.id ?? 0
+      );
+
       router.refresh();
     } catch (err) {
       toast.error((err as Error).message);
@@ -113,10 +157,16 @@ export function QuestionBankView({
 
   async function confirmDeleteQuestion() {
     if (!deleteQ) return;
+
     try {
-      await api(`/api/questions/${deleteQ.id}`, { method: "DELETE" });
+      await api(`/api/questions/${deleteQ.id}`, {
+        method: "DELETE",
+      });
+
       toast.success("Question deleted");
+
       setDeleteQ(null);
+
       router.refresh();
     } catch (err) {
       toast.error((err as Error).message);
@@ -125,13 +175,16 @@ export function QuestionBankView({
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
+      {/* Header */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">Question Bank</h1>
+
           <p className="text-sm text-muted-foreground">
             Browse and manage the questions available during interviews.
           </p>
         </div>
+
         <div className="flex flex-wrap items-center gap-2">
           <Button asChild variant="outline" size="sm">
             <a href="/api/question-banks/template" download>
@@ -139,7 +192,12 @@ export function QuestionBankView({
               Template
             </a>
           </Button>
-          <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setImportOpen(true)}
+          >
             <Upload className="h-4 w-4" />
             Import
           </Button>
@@ -147,45 +205,69 @@ export function QuestionBankView({
       </div>
 
       {/* Bank selector */}
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        {banks.map((b) => (
-          <button
-            key={b.id}
-            onClick={() => setActiveBankId(b.id)}
-            className={cn(
-              "flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors",
-              b.id === activeBankId
-                ? "border-primary bg-primary/10 text-primary"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <Library className="h-3.5 w-3.5" />
-            {b.name}
-            <span className="rounded-full bg-muted px-1.5 text-xs">
-              {(questionsByBank[b.id] ?? []).length}
-            </span>
-          </button>
-        ))}
-      </div>
+      {banks.length > 0 && (
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          {banks.map((b) => (
+            <button
+              key={b.id}
+              onClick={() => setActiveBankId(b.id)}
+              className={cn(
+                "flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors",
+                b.id === activeBankId
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <Library className="h-3.5 w-3.5" />
 
-      {activeBank && (
+              {b.name}
+
+              <span className="rounded-full bg-muted px-1.5 text-xs">
+                {(questionsByBank[b.id] ?? []).length}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* No banks */}
+      {banks.length === 0 ? (
+        <EmptyState
+          icon={Library}
+          title="No question banks yet"
+          description="Create a question bank or import one to start managing interview questions."
+          action={
+            <Button onClick={() => setImportOpen(true)}>
+              <Upload className="h-4 w-4" />
+              Import question bank
+            </Button>
+          }
+        />
+      ) : activeBank ? (
         <>
+          {/* Active bank header */}
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div className="min-w-0">
               <h2 className="font-medium">{activeBank.name}</h2>
+
               {activeBank.description && (
                 <p className="text-sm text-muted-foreground">
                   {activeBank.description}
                 </p>
               )}
             </div>
+
             <div className="flex items-center gap-2">
               <Button asChild variant="outline" size="sm">
-                <a href={`/api/question-banks/${activeBank.id}/export`} download>
+                <a
+                  href={`/api/question-banks/${activeBank.id}/export`}
+                  download
+                >
                   <Download className="h-4 w-4" />
                   Export
                 </a>
               </Button>
+
               {activeBank.is_seed === 0 && (
                 <Button
                   variant="outline"
@@ -196,15 +278,21 @@ export function QuestionBankView({
                   Delete bank
                 </Button>
               )}
-              <Button size="sm" onClick={() => openForm(null)}>
+
+              <Button
+                size="sm"
+                onClick={() => openForm(null)}
+              >
                 <Plus className="h-4 w-4" />
                 Add question
               </Button>
             </div>
           </div>
 
+          {/* Search */}
           <div className="relative mb-3 max-w-sm">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -213,6 +301,7 @@ export function QuestionBankView({
             />
           </div>
 
+          {/* Questions */}
           {byCategory.length === 0 ? (
             <div className="rounded-xl border border-dashed p-10 text-center text-sm text-muted-foreground">
               {questions.length === 0
@@ -223,17 +312,25 @@ export function QuestionBankView({
             <div className="overflow-hidden rounded-xl border bg-card">
               {byCategory.map(([cat, items], idx) => {
                 const open = openCats.has(cat);
+
                 return (
-                  <div key={cat} className={idx > 0 ? "border-t" : ""}>
+                  <div
+                    key={cat}
+                    className={idx > 0 ? "border-t" : ""}
+                  >
                     <button
                       onClick={() => toggleCat(cat)}
                       className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-accent/40"
                     >
-                      <span className="font-medium">{cat}</span>
+                      <span className="font-medium">
+                        {cat}
+                      </span>
+
                       <span className="flex items-center gap-2">
                         <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
                           {items.length}
                         </span>
+
                         <ChevronDown
                           className={cn(
                             "h-4 w-4 text-muted-foreground transition-transform",
@@ -242,24 +339,38 @@ export function QuestionBankView({
                         />
                       </span>
                     </button>
+
                     {open && (
                       <div className="space-y-2 px-3 pb-3">
                         {items.map((q) => (
-                          <div key={q.id} className="rounded-lg border bg-card/50 p-3">
+                          <div
+                            key={q.id}
+                            className="rounded-lg border bg-card/50 p-3"
+                          >
                             <div className="flex items-start gap-2">
                               <div className="min-w-0 flex-1">
                                 <div className="flex flex-wrap items-center gap-1.5">
-                                  <DifficultyBadge difficulty={q.difficulty} />
+                                  <DifficultyBadge
+                                    difficulty={q.difficulty}
+                                  />
+
                                   <TypeBadge qtype={q.qtype} />
                                 </div>
-                                <p className="mt-1.5 text-sm">{q.question}</p>
+
+                                <p className="mt-1.5 text-sm">
+                                  {q.question}
+                                </p>
+
                                 {q.answer_hints && (
                                   <p className="mt-1.5 rounded bg-muted/60 p-2 text-xs text-muted-foreground">
-                                    <span className="font-medium">Hints: </span>
+                                    <span className="font-medium">
+                                      Hints:{" "}
+                                    </span>
                                     {q.answer_hints}
                                   </p>
                                 )}
                               </div>
+
                               <div className="flex shrink-0 gap-1">
                                 <Button
                                   variant="ghost"
@@ -269,6 +380,7 @@ export function QuestionBankView({
                                 >
                                   <Pencil className="h-4 w-4" />
                                 </Button>
+
                                 <Button
                                   variant="ghost"
                                   size="icon"
@@ -289,8 +401,9 @@ export function QuestionBankView({
             </div>
           )}
         </>
-      )}
+      ) : null}
 
+      {/* Question form dialog */}
       {activeBank && (
         <QuestionFormDialog
           key={formKey}
@@ -301,36 +414,73 @@ export function QuestionBankView({
           categories={categories}
         />
       )}
-      <ImportDialog open={importOpen} onOpenChange={setImportOpen} />
 
-      <AlertDialog open={!!deleteBank} onOpenChange={(o) => !o && setDeleteBank(null)}>
+      {/* Import dialog */}
+      <ImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+      />
+
+      {/* Delete bank dialog */}
+      <AlertDialog
+        open={!!deleteBank}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteBank(null);
+          }
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this bank?</AlertDialogTitle>
+            <AlertDialogTitle>
+              Delete this bank?
+            </AlertDialogTitle>
+
             <AlertDialogDescription>
-              &quot;{deleteBank?.name}&quot; and all its questions will be permanently
-              removed. Questions already asked in past interviews keep their saved
-              copy.
+              &quot;{deleteBank?.name}&quot; and all its questions will be
+              permanently removed. Questions already asked in past
+              interviews keep their saved copy.
             </AlertDialogDescription>
           </AlertDialogHeader>
+
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDeleteBank}>Delete</AlertDialogAction>
+            <AlertDialogCancel>
+              Cancel
+            </AlertDialogCancel>
+
+            <AlertDialogAction onClick={confirmDeleteBank}>
+              Delete
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog open={!!deleteQ} onOpenChange={(o) => !o && setDeleteQ(null)}>
+      {/* Delete question dialog */}
+      <AlertDialog
+        open={!!deleteQ}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteQ(null);
+          }
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this question?</AlertDialogTitle>
+            <AlertDialogTitle>
+              Delete this question?
+            </AlertDialogTitle>
+
             <AlertDialogDescription>
-              This removes it from the bank. Interviews that already asked it keep
-              their saved copy.
+              This removes it from the bank. Interviews that already
+              asked it keep their saved copy.
             </AlertDialogDescription>
           </AlertDialogHeader>
+
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>
+              Cancel
+            </AlertDialogCancel>
+
             <AlertDialogAction onClick={confirmDeleteQuestion}>
               Delete
             </AlertDialogAction>
