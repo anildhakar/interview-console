@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Search, Users, Link2, X } from "lucide-react";
 import type { CandidateSummary } from "@/lib/pipeline";
@@ -27,6 +27,7 @@ export function CandidatesView({
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
   const [selected, setSelected] = useState<Set<number>>(new Set());
+  const selectAllRef = useRef<HTMLInputElement>(null);
   const [shareOpen, setShareOpen] = useState(false);
 
   function toggle(id: number) {
@@ -56,6 +57,25 @@ export function CandidatesView({
     });
   }, [candidates, query, filter, currentUserId]);
 
+  // The number of selected candidates that are visible in the current filter.
+  const visibleSelectedCount = filtered.filter((c) =>
+    selected.has(c.id),
+  ).length;
+
+  const hiddenSelectedCount = selected.size - visibleSelectedCount;
+
+  const allVisibleSelected =
+    filtered.length > 0 && visibleSelectedCount === filtered.length;
+
+  const someVisibleSelected =
+    visibleSelectedCount > 0 && visibleSelectedCount < filtered.length;
+
+  useEffect(() => {
+    if (selectAllRef.current) {
+      selectAllRef.current.indeterminate = someVisibleSelected;
+    }
+  }, [someVisibleSelected]);
+
   const filters: { key: Filter; label: string }[] = [
     { key: "all", label: "All" },
     { key: "mine", label: "Added by me" },
@@ -68,8 +88,8 @@ export function CandidatesView({
         <div>
           <h1 className="text-2xl font-semibold">Candidates</h1>
           <p className="text-sm text-muted-foreground">
-            {candidates.length} candidate{candidates.length === 1 ? "" : "s"} in the
-            pipeline
+            {candidates.length} candidate{candidates.length === 1 ? "" : "s"} in
+            the pipeline
           </p>
         </div>
         <AddCandidateDialog />
@@ -79,6 +99,7 @@ export function CandidatesView({
         <div className="relative flex-1 min-w-56">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
+            data-testid="search-input"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by name, role or company…"
@@ -94,7 +115,7 @@ export function CandidatesView({
                 "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
                 filter === f.key
                   ? "bg-accent text-accent-foreground"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               {f.label}
@@ -112,19 +133,31 @@ export function CandidatesView({
               <tr>
                 <th className="w-10 px-3 py-2.5">
                   <input
+                    ref={selectAllRef}
+                    data-testid="select-all"
                     type="checkbox"
                     className="h-4 w-4 cursor-pointer accent-[var(--primary)]"
                     aria-label="Select all"
-                    checked={
-                      filtered.length > 0 &&
-                      filtered.every((c) => selected.has(c.id))
+                    aria-checked={
+                      someVisibleSelected
+                        ? "mixed"
+                        : allVisibleSelected
+                          ? "true"
+                          : "false"
                     }
-                    onChange={(e) => {
+                    checked={allVisibleSelected}
+                    onChange={() => {
                       setSelected((prev) => {
                         const next = new Set(prev);
-                        if (e.target.checked)
+
+                        // If some or all visible candidates are selected,(clicking the header checkbox clears the visible ones)
+                        if (someVisibleSelected || allVisibleSelected) {
+                          filtered.forEach((c) => next.delete(c.id));
+                        } else {
+                          // Nothing visible is selected -> select all visible.
                           filtered.forEach((c) => next.add(c.id));
-                        else filtered.forEach((c) => next.delete(c.id));
+                        }
+
                         return next;
                       });
                     }}
@@ -138,13 +171,13 @@ export function CandidatesView({
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y">
+            <tbody data-slot="table-body" className="divide-y">
               {filtered.map((c) => (
                 <tr
                   key={c.id}
                   className={cn(
                     "group hover:bg-accent/30",
-                    selected.has(c.id) && "bg-primary/5"
+                    selected.has(c.id) && "bg-primary/5",
                   )}
                 >
                   <td className="px-3 py-3">
@@ -183,7 +216,9 @@ export function CandidatesView({
                             className="inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-xs"
                             title={`${r.title} · ${r.interviewer_name ?? "Unassigned"}`}
                           >
-                            <span className="font-medium">R{r.round_number}</span>
+                            <span className="font-medium">
+                              R{r.round_number}
+                            </span>
                             {r.status === "completed" ? (
                               <ScoreChip score={r.question_avg} />
                             ) : (
@@ -214,9 +249,17 @@ export function CandidatesView({
       {selected.size > 0 && (
         <div className="fixed inset-x-0 bottom-6 z-40 flex justify-center px-4">
           <div className="flex items-center gap-3 rounded-full border bg-card px-4 py-2 shadow-lg">
-            <span className="text-sm font-medium">
-              {selected.size} selected
-            </span>
+            <div className="text-sm font-medium">
+              <span data-testid="selection-count">
+                {selected.size} selected
+                {hiddenSelectedCount > 0 && (
+                  <span className="ml-2 text-xs text-muted-foreground">
+                    {hiddenSelectedCount} hidden by current filter
+                  </span>
+                )}
+              </span>
+            </div>
+
             <Button size="sm" onClick={() => setShareOpen(true)}>
               <Link2 className="h-4 w-4" />
               Share link
@@ -235,9 +278,7 @@ export function CandidatesView({
       <ShareBatchDialog
         open={shareOpen}
         onOpenChange={setShareOpen}
-        candidateIds={filtered
-          .filter((c) => selected.has(c.id))
-          .map((c) => c.id)}
+        candidateIds={Array.from(selected)}
       />
     </div>
   );
