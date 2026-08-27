@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Search, Users, Link2, X } from "lucide-react";
 import type { CandidateSummary } from "@/lib/pipeline";
 import type { Role } from "@/lib/types";
+import { fmtDate } from "@/lib/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
