@@ -29,7 +29,7 @@ let useDebouncedValue: typeof import("@/lib/use-debounced-value").useDebouncedVa
 let splitOnMatches: typeof import("@/components/highlight").splitOnMatches;
 let CandidatesView: typeof import("@/components/candidates/candidates-view").CandidatesView;
 
-describe.skip("ticket 10 — debounced search and highlighting", () => {
+describe("ticket 10 — debounced search and highlighting", () => {
   beforeAll(async () => {
     ({ useDebouncedValue } = await import("@/lib/use-debounced-value"));
     ({ splitOnMatches } = await import("@/components/highlight"));

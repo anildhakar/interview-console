@@ -1,6 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useDebouncedValue } from "@/lib/use-debounced-value";
+import { Highlight } from "@/components/highlight";
+
 import Link from "next/link";
 import { Search, Users, Link2, X } from "lucide-react";
 import type { CandidateSummary } from "@/lib/pipeline";
@@ -25,9 +28,13 @@ export function CandidatesView({
   role: Role;
 }) {
   const [query, setQuery] = useState("");
+  const debouncedQuery = useDebouncedValue(query, 300);
   const [filter, setFilter] = useState<Filter>("all");
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [shareOpen, setShareOpen] = useState(false);
+
+  const [page, setPage] = useState(1);
+const pageSize = 10;
 
   function toggle(id: number) {
     setSelected((prev) => {
@@ -39,22 +46,34 @@ export function CandidatesView({
   }
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return candidates.filter((c) => {
-      if (filter === "mine" && c.created_by !== currentUserId) return false;
-      if (
-        filter === "assigned" &&
-        !c.rounds.some((r) => r.interviewer_id === currentUserId)
-      )
-        return false;
-      if (!q) return true;
-      return (
-        c.name.toLowerCase().includes(q) ||
-        (c.applied_role ?? "").toLowerCase().includes(q) ||
-        (c.current_company ?? "").toLowerCase().includes(q)
-      );
-    });
-  }, [candidates, query, filter, currentUserId]);
+  const q = (query === "" ? "" : debouncedQuery).trim().toLowerCase();
+
+  return candidates.filter((c) => {
+    if (filter === "mine" && c.created_by !== currentUserId) return false;
+
+    if (
+      filter === "assigned" &&
+      !c.rounds.some((r) => r.interviewer_id === currentUserId)
+    ) {
+      return false;
+    }
+
+    if (!q) return true;
+
+    return (
+      c.name.toLowerCase().includes(q) ||
+      (c.applied_role ?? "").toLowerCase().includes(q) ||
+      (c.current_company ?? "").toLowerCase().includes(q)
+    );
+  });
+}, [candidates, query, debouncedQuery, filter, currentUserId]);
+
+const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+
+const paginated = useMemo(() => {
+  const start = (page - 1) * pageSize;
+  return filtered.slice(start, start + pageSize);
+}, [filtered, page]);
 
   const filters: { key: Filter; label: string }[] = [
     { key: "all", label: "All" },
@@ -79,6 +98,7 @@ export function CandidatesView({
         <div className="relative flex-1 min-w-56">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
+          data-testid="search-input"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by name, role or company…"
@@ -138,8 +158,8 @@ export function CandidatesView({
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y">
-              {filtered.map((c) => (
+            <tbody data-slot="table-body" className="divide-y">
+              {paginated.map((c) => (
                 <tr
                   key={c.id}
                   className={cn(
@@ -159,7 +179,7 @@ export function CandidatesView({
                   <td className="px-4 py-3">
                     <Link href={`/candidates/${c.id}`} className="block">
                       <div className="font-medium group-hover:underline">
-                        {c.name}
+                        <Highlight text={c.name} query={debouncedQuery} />
                       </div>
                       <div className="text-xs text-muted-foreground">
                         {[c.applied_role, c.current_company]
@@ -209,6 +229,39 @@ export function CandidatesView({
           </table>
         </div>
       )}
+
+<div className="mt-4 flex items-center justify-between">
+  <span
+    data-testid="page-info"
+    className="text-sm text-muted-foreground"
+  >
+    Page {page} of {totalPages} · Showing{" "}
+    {Math.min((page - 1) * pageSize + 1, filtered.length)}–
+    {Math.min(page * pageSize, filtered.length)} of {filtered.length}
+  </span>
+
+  <div className="flex gap-2">
+    <Button
+      data-testid="page-prev"
+      variant="outline"
+      size="sm"
+      disabled={page === 1}
+      onClick={() => setPage((p) => Math.max(1, p - 1))}
+    >
+      Previous
+    </Button>
+
+    <Button
+      data-testid="page-next"
+      variant="outline"
+      size="sm"
+      disabled={page >= totalPages}
+      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+    >
+      Next
+    </Button>
+  </div>
+</div>
 
       {/* Floating selection action bar */}
       {selected.size > 0 && (
