@@ -15,7 +15,7 @@ import { Users } from "lucide-react";
  */
 let EmptyState: typeof import("@/components/empty-state").EmptyState;
 
-describe.skip("ticket 4 — shared components", () => {
+describe("ticket 4 — shared components", () => {
   beforeAll(async () => {
     ({ EmptyState } = await import("@/components/empty-state"));
   });
