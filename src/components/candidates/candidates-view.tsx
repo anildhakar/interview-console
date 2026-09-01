@@ -161,7 +161,7 @@ export function CandidatesView({
       ) : (
         <div className="rounded-xl border bg-card">
           <Table>
-            <TableHeader className="border-b bg-muted/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
+            <TableHeader className="bg-muted/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
               <TableRow>
                 <TableHead className="w-10 px-3 py-2.5">
                   <input
@@ -206,7 +206,7 @@ export function CandidatesView({
               </TableRow>
             </TableHeader>
 
-            <TableBody className="divide-y">
+            <TableBody>
               {filtered.map((c) => (
                 <TableRow
                   key={c.id}
