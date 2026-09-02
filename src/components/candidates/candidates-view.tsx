@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Search, Users, Link2, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -128,15 +128,12 @@ function getPageFromUrl(value: string | null): number {
   return parsed;
 }
 
-export function CandidatesView({
-  candidates,
-  currentUserId,
-  role,
-}: {
+export function CandidatesView(props: {
   candidates: CandidateSummary[];
   currentUserId: number;
   role: Role;
 }) {
+  const { candidates, currentUserId } = props;
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -172,10 +169,16 @@ export function CandidatesView({
   const urlPage = getPageFromUrl(urlPageValue);
 
   const [query, setQuery] = useState(urlQuery);
+const [previousUrlQuery, setPreviousUrlQuery] = useState(urlQuery);
 
-  const [selected, setSelected] = useState<Set<number>>(new Set());
+if (previousUrlQuery !== urlQuery) {
+  setPreviousUrlQuery(urlQuery);
+  setQuery(urlQuery);
+}
 
-  const [shareOpen, setShareOpen] = useState(false);
+const [selected, setSelected] = useState<Set<number>>(new Set());
+
+const [shareOpen, setShareOpen] = useState(false);
 
   const filter = urlFilter;
 
@@ -188,10 +191,11 @@ export function CandidatesView({
 
   const PAGE_SIZE = 10;
 
-  function updateUrl(
+ const updateUrl = useCallback(
+  (
     updates: Record<string, string | null>,
     method: "push" | "replace" = "push",
-  ) {
+  ) => {
     const params = new URLSearchParams(searchParamsRef.current.toString());
 
     Object.entries(updates).forEach(([key, value]) => {
@@ -217,26 +221,23 @@ export function CandidatesView({
     } else {
       router.push(nextUrl, { scroll: false });
     }
-  }
+  },
+  [pathname, router],
+);
 
   useEffect(() => {
-    setQuery(urlQuery);
-  }, [urlQuery]);
+  const timer = window.setTimeout(() => {
+    updateUrl(
+      {
+        q: query.trim() ? query.trim() : null,
+        page: null,
+      },
+      "replace",
+    );
+  }, 300);
 
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      updateUrl(
-        {
-          q: query.trim() ? query.trim() : null,
-
-          page: null,
-        },
-        "replace",
-      );
-    }, 300);
-
-    return () => window.clearTimeout(timer);
-  }, [query]);
+  return () => window.clearTimeout(timer);
+}, [query, updateUrl]);
 
   function toggle(id: number) {
     setSelected((prev) => {
@@ -321,21 +322,18 @@ export function CandidatesView({
     });
   }, [candidates, query, filter, currentUserId]);
 
-  // Filtered candidates ko selected sort ke according arrange karta hai.
   const sorted = useMemo(() => {
     return [...filtered].sort((a, b) =>
       compareCandidates(a, b, sort.key, sort.direction),
     );
-  }, [filtered, sort]);
+  }, [filtered, sort.key, sort.direction]);
 
   const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
 
-  // URL mein page 99 ho lekin actual pages 2 ho to page 2 show karega.
   const safePage = Math.min(page, totalPages);
 
   const startIndex = (safePage - 1) * PAGE_SIZE;
 
-  // Current page ke candidates.
   const paginated = sorted.slice(startIndex, startIndex + PAGE_SIZE);
 
   const visibleStart = sorted.length === 0 ? 0 : startIndex + 1;
@@ -360,7 +358,6 @@ export function CandidatesView({
     },
   ];
 
-  // Sort button ke paas ↑, ↓ ya ↕ show karta hai.
   function sortIndicator(key: SortKey) {
     if (sort.key !== key) {
       return "↕";
@@ -369,7 +366,6 @@ export function CandidatesView({
     return sort.direction === "asc" ? "↑" : "↓";
   }
 
-  // Table header ke aria-sort attribute ko set karta hai.
   function ariaSort(key: SortKey) {
     if (sort.key !== key) {
       return "none" as const;
