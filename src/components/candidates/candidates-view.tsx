@@ -122,7 +122,6 @@ export function CandidatesView({
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
 
           <Input
-            data-testid="search-input"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by name, role or company…"
@@ -224,7 +223,7 @@ export function CandidatesView({
                 </th>
               </tr>
             </thead>
-            <tbody  data-slot="table-body" className="divide-y">
+            <tbody className="divide-y">
               {filtered.map((c) => (
                 <tr
                   key={c.id}
