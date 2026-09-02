@@ -17,11 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  StatusBadge,
-  ScoreChip,
-  RoundStatusBadge,
-} from "@/components/badges";
+import { StatusBadge, ScoreChip, RoundStatusBadge } from "@/components/badges";
 import { AddCandidateDialog } from "@/components/candidates/add-candidate-dialog";
 import { ShareBatchDialog } from "@/components/candidates/share-batch-dialog";
 import { EmptyState } from "@/components/empty-state";
@@ -40,21 +36,10 @@ type SortState = {
   direction: SortDirection;
 };
 
-/**
- * Candidate score is the average of completed rounds'
- * question_avg values.
- *
- * Rounds without a completed status are ignored.
- * If no completed round has a score, the candidate score is null.
- */
-export function candidateScore(
-  candidate: CandidateSummary
-): number | null {
+export function candidateScore(candidate: CandidateSummary): number | null {
   const scores = candidate.rounds
     .filter(
-      (round) =>
-        round.status === "completed" &&
-        round.question_avg != null
+      (round) => round.status === "completed" && round.question_avg != null,
     )
     .map((round) => round.question_avg as number);
 
@@ -62,35 +47,17 @@ export function candidateScore(
     return null;
   }
 
-  return (
-    scores.reduce((sum, score) => sum + score, 0) /
-    scores.length
-  );
+  return scores.reduce((sum, score) => sum + score, 0) / scores.length;
 }
 
-/**
- * Compare two candidates for the requested sort column/direction.
- *
- * Rules:
- * - Names are sorted case-insensitively.
- * - Scores are based on completed rounds only.
- * - Candidates without a score always go last.
- * - Ascending and descending work consistently.
- */
 export function compareCandidates(
   a: CandidateSummary,
   b: CandidateSummary,
   key: SortKey,
-  direction: SortDirection
+  direction: SortDirection,
 ): number {
   const multiplier = direction === "asc" ? 1 : -1;
 
-  /*
-   * Score sorting
-   *
-   * Missing scores must ALWAYS be last,
-   * regardless of ascending or descending.
-   */
   if (key === "score") {
     const aScore = candidateScore(a);
     const bScore = candidateScore(b);
@@ -112,19 +79,6 @@ export function compareCandidates(
 
   let result = 0;
 
-  /*
-   * Name sorting
-   *
-   * Lowercase both names so:
-   *
-   * alex chen
-   * Zara Whitfield
-   *
-   * becomes:
-   *
-   * alex chen
-   * zara whitfield
-   */
   if (key === "name") {
     const aName = a.name.trim().toLowerCase();
     const bName = b.name.trim().toLowerCase();
@@ -134,8 +88,7 @@ export function compareCandidates(
     result = a.status.localeCompare(b.status);
   } else if (key === "added") {
     result =
-      new Date(a.created_at).getTime() -
-      new Date(b.created_at).getTime();
+      new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
   }
 
   return result * multiplier;
@@ -152,19 +105,9 @@ export function CandidatesView({
 }) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
-  const [selected, setSelected] = useState<Set<number>>(
-    new Set()
-  );
+  const [selected, setSelected] = useState<Set<number>>(new Set());
   const [shareOpen, setShareOpen] = useState(false);
 
-  /*
-   * IMPORTANT:
-   * Internal direction is ONLY:
-   *
-   * "asc" | "desc"
-   *
-   * aria-sort is converted separately.
-   */
   const [sort, setSort] = useState<SortState>({
     key: "name",
     direction: "asc",
@@ -195,8 +138,7 @@ export function CandidatesView({
       if (prev.key === key) {
         return {
           key,
-          direction:
-            prev.direction === "asc" ? "desc" : "asc",
+          direction: prev.direction === "asc" ? "desc" : "asc",
         };
       }
 
@@ -221,18 +163,13 @@ export function CandidatesView({
     const q = query.trim().toLowerCase();
 
     return candidates.filter((c) => {
-      if (
-        filter === "mine" &&
-        c.created_by !== currentUserId
-      ) {
+      if (filter === "mine" && c.created_by !== currentUserId) {
         return false;
       }
 
       if (
         filter === "assigned" &&
-        !c.rounds.some(
-          (r) => r.interviewer_id === currentUserId
-        )
+        !c.rounds.some((r) => r.interviewer_id === currentUserId)
       ) {
         return false;
       }
@@ -243,52 +180,30 @@ export function CandidatesView({
 
       return (
         c.name.toLowerCase().includes(q) ||
-        (c.applied_role ?? "")
-          .toLowerCase()
-          .includes(q) ||
-        (c.current_company ?? "")
-          .toLowerCase()
-          .includes(q)
+        (c.applied_role ?? "").toLowerCase().includes(q) ||
+        (c.current_company ?? "").toLowerCase().includes(q)
       );
     });
   }, [candidates, query, filter, currentUserId]);
 
   const sorted = useMemo(() => {
-    /*
-     * IMPORTANT:
-     * Never mutate candidates or filtered.
-     */
+    // IMPORTANT: Never mutate candidates or filtered.
     return [...filtered].sort((a, b) =>
-      compareCandidates(
-        a,
-        b,
-        sort.key,
-        sort.direction
-      )
+      compareCandidates(a, b, sort.key, sort.direction),
     );
   }, [filtered, sort]);
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(sorted.length / PAGE_SIZE)
-  );
+  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
 
   const safePage = Math.min(page, totalPages);
 
   const startIndex = (safePage - 1) * PAGE_SIZE;
 
-  const paginated = sorted.slice(
-    startIndex,
-    startIndex + PAGE_SIZE
-  );
+  const paginated = sorted.slice(startIndex, startIndex + PAGE_SIZE);
 
-  const visibleStart =
-    sorted.length === 0 ? 0 : startIndex + 1;
+  const visibleStart = sorted.length === 0 ? 0 : startIndex + 1;
 
-  const visibleEnd = Math.min(
-    startIndex + PAGE_SIZE,
-    sorted.length
-  );
+  const visibleEnd = Math.min(startIndex + PAGE_SIZE, sorted.length);
 
   const filters: {
     key: Filter;
@@ -300,13 +215,12 @@ export function CandidatesView({
   ];
 
   function sortIndicator(key: SortKey) {
-    if (sort.key !== key) {
-      return "↕";
-    }
-
-    return sort.direction === "asc" ? "↑" : "↓";
+  if (sort.key !== key) {
+    return "↕";
   }
 
+  return sort.direction === "asc" ? "↑" : "↓";
+}
   function ariaSort(key: SortKey) {
     if (sort.key !== key) {
       return "none" as const;
@@ -321,14 +235,11 @@ export function CandidatesView({
     <div className="mx-auto max-w-6xl px-4 py-6">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">
-            Candidates
-          </h1>
+          <h1 className="text-2xl font-semibold">Candidates</h1>
 
           <p className="text-sm text-muted-foreground">
-            {filtered.length} candidate
-            {filtered.length === 1 ? "" : "s"} in the
-            pipeline
+            {candidates.length} candidate
+            {candidates.length === 1 ? "" : "s"} in the pipeline
           </p>
         </div>
 
@@ -341,9 +252,7 @@ export function CandidatesView({
 
           <Input
             value={query}
-            onChange={(e) =>
-              handleQueryChange(e.target.value)
-            }
+            onChange={(e) => handleQueryChange(e.target.value)}
             placeholder="Search by name, role or company…"
             className="pl-8"
           />
@@ -354,14 +263,12 @@ export function CandidatesView({
             <button
               key={f.key}
               type="button"
-              onClick={() =>
-                handleFilterChange(f.key)
-              }
+              onClick={() => handleFilterChange(f.key)}
               className={cn(
                 "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
                 filter === f.key
                   ? "bg-accent text-accent-foreground"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               {f.label}
@@ -385,18 +292,14 @@ export function CandidatesView({
           }
           action={
             candidates.length === 0 ? (
-              <AddCandidateDialog
-                trigger={
-                  <Button>Add candidate</Button>
-                }
-              />
+              <AddCandidateDialog trigger={<Button>Add candidate</Button>} />
             ) : undefined
           }
         />
       ) : (
-        <div className="overflow-x-auto rounded-xl border bg-card">
+        <div className="rounded-xl border bg-card">
           <Table>
-            <TableHeader className="border-b bg-muted/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
+            <TableHeader className="bg-muted/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
               <TableRow>
                 <TableHead className="w-10 px-3 py-2.5">
                   <input
@@ -405,22 +308,16 @@ export function CandidatesView({
                     aria-label="Select all"
                     checked={
                       filtered.length > 0 &&
-                      filtered.every((c) =>
-                        selected.has(c.id)
-                      )
+                      filtered.every((c) => selected.has(c.id))
                     }
                     onChange={(e) => {
                       setSelected((prev) => {
                         const next = new Set(prev);
 
                         if (e.target.checked) {
-                          filtered.forEach((c) =>
-                            next.add(c.id)
-                          );
+                          filtered.forEach((c) => next.add(c.id));
                         } else {
-                          filtered.forEach((c) =>
-                            next.delete(c.id)
-                          );
+                          filtered.forEach((c) => next.delete(c.id));
                         }
 
                         return next;
@@ -436,15 +333,11 @@ export function CandidatesView({
                   <button
                     type="button"
                     data-testid="sort-name"
-                    onClick={() =>
-                      handleSort("name")
-                    }
+                    onClick={() => handleSort("name")}
                     className="inline-flex items-center gap-1"
                   >
                     Candidate
-                    <span aria-hidden="true">
-                      {sortIndicator("name")}
-                    </span>
+                    <span aria-hidden="true">{sortIndicator("name")}</span>
                   </button>
                 </TableHead>
 
@@ -459,15 +352,11 @@ export function CandidatesView({
                   <button
                     type="button"
                     data-testid="sort-status"
-                    onClick={() =>
-                      handleSort("status")
-                    }
+                    onClick={() => handleSort("status")}
                     className="inline-flex items-center gap-1"
                   >
                     Status
-                    <span aria-hidden="true">
-                      {sortIndicator("status")}
-                    </span>
+                    <span aria-hidden="true">{sortIndicator("status")}</span>
                   </button>
                 </TableHead>
 
@@ -478,15 +367,11 @@ export function CandidatesView({
                   <button
                     type="button"
                     data-testid="sort-added"
-                    onClick={() =>
-                      handleSort("added")
-                    }
+                    onClick={() => handleSort("added")}
                     className="inline-flex items-center gap-1"
                   >
                     Added
-                    <span aria-hidden="true">
-                      {sortIndicator("added")}
-                    </span>
+                    <span aria-hidden="true">{sortIndicator("added")}</span>
                   </button>
                 </TableHead>
 
@@ -497,28 +382,23 @@ export function CandidatesView({
                   <button
                     type="button"
                     data-testid="sort-score"
-                    onClick={() =>
-                      handleSort("score")
-                    }
+                    onClick={() => handleSort("score")}
                     className="inline-flex items-center gap-1"
                   >
                     Score
-                    <span aria-hidden="true">
-                      {sortIndicator("score")}
-                    </span>
+                    <span aria-hidden="true">{sortIndicator("score")}</span>
                   </button>
                 </TableHead>
               </TableRow>
             </TableHeader>
 
-            <TableBody className="divide-y">
+            <TableBody>
               {paginated.map((c) => (
                 <TableRow
                   key={c.id}
                   className={cn(
                     "group hover:bg-accent/30",
-                    selected.has(c.id) &&
-                      "bg-primary/5"
+                    selected.has(c.id) && "bg-primary/5",
                   )}
                 >
                   <TableCell className="px-3 py-3">
@@ -527,9 +407,7 @@ export function CandidatesView({
                       className="h-4 w-4 cursor-pointer accent-[var(--primary)]"
                       aria-label={`Select ${c.name}`}
                       checked={selected.has(c.id)}
-                      onChange={() =>
-                        toggle(c.id)
-                      }
+                      onChange={() => toggle(c.id)}
                     />
                   </TableCell>
 
@@ -538,10 +416,7 @@ export function CandidatesView({
                       href={`/candidates/${c.id}`}
                       className="flex items-center gap-3"
                     >
-                      <CandidateAvatar
-                        name={c.name}
-                        size="md"
-                      />
+                      <CandidateAvatar name={c.name} size="md" />
 
                       <div>
                         <div className="font-medium group-hover:underline">
@@ -549,10 +424,7 @@ export function CandidatesView({
                         </div>
 
                         <div className="text-xs text-muted-foreground">
-                          {[
-                            c.applied_role,
-                            c.current_company,
-                          ]
+                          {[c.applied_role, c.current_company]
                             .filter(Boolean)
                             .join(" · ") || "—"}
 
@@ -575,23 +447,17 @@ export function CandidatesView({
                             key={r.id}
                             className="inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-xs"
                             title={`${r.title} · ${
-                              r.interviewer_name ??
-                              "Unassigned"
+                              r.interviewer_name ?? "Unassigned"
                             }`}
                           >
                             <span className="font-medium">
                               R{r.round_number}
                             </span>
 
-                            {r.status ===
-                            "completed" ? (
-                              <ScoreChip
-                                score={r.question_avg}
-                              />
+                            {r.status === "completed" ? (
+                              <ScoreChip score={r.question_avg} />
                             ) : (
-                              <RoundStatusBadge
-                                status={r.status}
-                              />
+                              <RoundStatusBadge status={r.status} />
                             )}
                           </span>
                         ))
@@ -604,26 +470,18 @@ export function CandidatesView({
                   </TableCell>
 
                   <TableCell className="px-4 py-3 text-muted-foreground">
-                    <RelativeTime
-                      value={c.created_at}
-                    />
+                    <RelativeTime value={c.created_at} />
 
                     {c.created_by_name && (
-                      <div className="text-xs">
-                        by {c.created_by_name}
-                      </div>
+                      <div className="text-xs">by {c.created_by_name}</div>
                     )}
                   </TableCell>
 
                   <TableCell className="px-4 py-3">
                     {candidateScore(c) == null ? (
-                      <span className="text-sm text-muted-foreground">
-                        —
-                      </span>
+                      <span className="text-sm text-muted-foreground">—</span>
                     ) : (
-                      <ScoreChip
-                        score={candidateScore(c)}
-                      />
+                      <ScoreChip score={candidateScore(c)} />
                     )}
                   </TableCell>
                 </TableRow>
@@ -639,8 +497,7 @@ export function CandidatesView({
             data-testid="page-info"
             className="text-sm text-muted-foreground"
           >
-            {visibleStart}–{visibleEnd} of{" "}
-            {sorted.length}
+            {visibleStart}–{visibleEnd} of {sorted.length}
           </div>
 
           <div className="flex items-center gap-2">
@@ -650,11 +507,7 @@ export function CandidatesView({
               size="sm"
               data-testid="page-prev"
               disabled={safePage === 1}
-              onClick={() =>
-                setPage((prev) =>
-                  Math.max(1, prev - 1)
-                )
-              }
+              onClick={() => setPage((prev) => Math.max(1, prev - 1))}
             >
               Previous
             </Button>
@@ -665,14 +518,7 @@ export function CandidatesView({
               size="sm"
               data-testid="page-next"
               disabled={safePage >= totalPages}
-              onClick={() =>
-                setPage((prev) =>
-                  Math.min(
-                    totalPages,
-                    prev + 1
-                  )
-                )
-              }
+              onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
             >
               Next
             </Button>
@@ -687,21 +533,14 @@ export function CandidatesView({
               {selected.size} selected
             </span>
 
-            <Button
-              size="sm"
-              onClick={() =>
-                setShareOpen(true)
-              }
-            >
+            <Button size="sm" onClick={() => setShareOpen(true)}>
               <Link2 className="h-4 w-4" />
               Share link
             </Button>
 
             <button
               type="button"
-              onClick={() =>
-                setSelected(new Set())
-              }
+              onClick={() => setSelected(new Set())}
               className="flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground hover:bg-accent hover:text-foreground"
               aria-label="Clear selection"
             >
