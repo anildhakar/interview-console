@@ -5,7 +5,6 @@ import Link from "next/link";
 import { Search, Users, Link2, X } from "lucide-react";
 import type { CandidateSummary } from "@/lib/pipeline";
 import type { Role } from "@/lib/types";
-import { fmtDate } from "@/lib/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -225,7 +224,7 @@ export function CandidatesView({
                 </th>
               </tr>
             </thead>
-            <tbody data-slot="table-body" className="divide-y">
+            <tbody  data-slot="table-body" className="divide-y">
               {filtered.map((c) => (
                 <tr
                   key={c.id}
@@ -244,19 +243,28 @@ export function CandidatesView({
                     />
                   </td>
                   <td className="px-4 py-3">
-                    <Link href={`/candidates/${c.id}`} className="block">
-                      <div className="font-medium group-hover:underline">
-                        {c.name}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {[c.applied_role, c.current_company]
-                          .filter(Boolean)
-                          .join(" · ") || "—"}
-                        {c.experience_years != null &&
-                          ` · ${c.experience_years} yr`}
-                      </div>
-                    </Link>
-                  </td>
+  <Link
+    href={`/candidates/${c.id}`}
+    className="flex items-center gap-3"
+  >
+    <CandidateAvatar name={c.name} size="sm" />
+
+    <div>
+      <div className="font-medium group-hover:underline">
+        {c.name}
+      </div>
+
+      <div className="text-xs text-muted-foreground">
+        {[c.applied_role, c.current_company]
+          .filter(Boolean)
+          .join(" · ") || "—"}
+
+        {c.experience_years != null &&
+          ` · ${c.experience_years} yr`}
+      </div>
+    </div>
+  </Link>
+</td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap items-center gap-1.5">
                       {c.rounds.length === 0 ? (
@@ -286,12 +294,15 @@ export function CandidatesView({
                   <td className="px-4 py-3">
                     <StatusBadge status={c.status} />
                   </td>
-                  <td className="hidden px-4 py-3 text-muted-foreground md:table-cell">
-                    {fmtDate(c.created_at)}
-                    {c.created_by_name && (
-                      <div className="text-xs">by {c.created_by_name}</div>
-                    )}
-                  </td>
+<td className="hidden px-4 py-3 text-muted-foreground md:table-cell">
+  <RelativeTime value={c.created_at} />
+
+  {c.created_by_name && (
+    <div className="text-xs">
+      by {c.created_by_name}
+    </div>
+  )}
+</td>
                 </tr>
               ))}
             </tbody>
