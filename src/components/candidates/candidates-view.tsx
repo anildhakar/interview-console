@@ -1,21 +1,9 @@
 "use client";
 
-import {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import {
-  Search,
-  Users,
-  Link2,
-  X,
-} from "lucide-react";
-import {
-  useRouter,
-  useSearchParams,
-} from "next/navigation";
+import { Search, Users, Link2, X } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import type { CandidateSummary } from "@/lib/pipeline";
 import type { Role } from "@/lib/types";
@@ -30,11 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  StatusBadge,
-  ScoreChip,
-  RoundStatusBadge,
-} from "@/components/badges";
+import { StatusBadge, ScoreChip, RoundStatusBadge } from "@/components/badges";
 import { AddCandidateDialog } from "@/components/candidates/add-candidate-dialog";
 import { ShareBatchDialog } from "@/components/candidates/share-batch-dialog";
 import { EmptyState } from "@/components/empty-state";
@@ -53,15 +37,11 @@ type SortState = {
   direction: SortDirection;
 };
 
-// Candidate ke completed rounds ka average score nikalta hai.
-export function candidateScore(
-  candidate: CandidateSummary
-): number | null {
+// Calculate the average score from completed rounds.
+export function candidateScore(candidate: CandidateSummary): number | null {
   const scores = candidate.rounds
     .filter(
-      (round) =>
-        round.status === "completed" &&
-        round.question_avg != null
+      (round) => round.status === "completed" && round.question_avg != null,
     )
     .map((round) => round.question_avg as number);
 
@@ -69,22 +49,18 @@ export function candidateScore(
     return null;
   }
 
-  return (
-    scores.reduce((sum, score) => sum + score, 0) /
-    scores.length
-  );
+  return scores.reduce((sum, score) => sum + score, 0) / scores.length;
 }
 
-// Candidate ko selected column aur direction ke according compare karta hai.
+// Compare two candidates based on the given sort key and direction.
 export function compareCandidates(
   a: CandidateSummary,
   b: CandidateSummary,
   key: SortKey,
-  direction: SortDirection
+  direction: SortDirection,
 ): number {
   const multiplier = direction === "asc" ? 1 : -1;
 
-  // Score sort karte time jiska score nahi hai wo hamesha last rahega.
   if (key === "score") {
     const aScore = candidateScore(a);
     const bScore = candidateScore(b);
@@ -106,44 +82,26 @@ export function compareCandidates(
 
   let result = 0;
 
-  // Name ko case-insensitive way mein sort karta hai.
   if (key === "name") {
     const aName = a.name.trim().toLowerCase();
     const bName = b.name.trim().toLowerCase();
 
     result = aName.localeCompare(bName);
-  }
-
-
-  else if (key === "status") {
+  } else if (key === "status") {
     result = a.status.localeCompare(b.status);
-  }
-
-
-  else if (key === "added") {
+  } else if (key === "added") {
     result =
-      new Date(a.created_at).getTime() -
-      new Date(b.created_at).getTime();
+      new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
   }
 
   return result * multiplier;
 }
 
-
-function isValidFilter(
-  value: string | null
-): value is Filter {
-  return (
-    value === "all" ||
-    value === "mine" ||
-    value === "assigned"
-  );
+function isValidFilter(value: string | null): value is Filter {
+  return value === "all" || value === "mine" || value === "assigned";
 }
 
-
-function isValidSortKey(
-  value: string | null
-): value is SortKey {
+function isValidSortKey(value: string | null): value is SortKey {
   return (
     value === "name" ||
     value === "status" ||
@@ -152,17 +110,11 @@ function isValidSortKey(
   );
 }
 
-
-function isValidSortDirection(
-  value: string | null
-): value is SortDirection {
+function isValidSortDirection(value: string | null): value is SortDirection {
   return value === "asc" || value === "desc";
 }
 
-
-function getPageFromUrl(
-  value: string | null
-): number {
+function getPageFromUrl(value: string | null): number {
   if (!value) {
     return 1;
   }
@@ -183,12 +135,18 @@ export function CandidatesView({
 }: {
   candidates: CandidateSummary[];
   currentUserId: number;
-  role?: Role;
+  role: Role;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // URL se query, filter, sort, direction aur page nikalta hai.
+  const searchParamsRef = useRef(searchParams);
+
+  useEffect(() => {
+    searchParamsRef.current = searchParams;
+  }, [searchParams]);
+
   const urlQuery = searchParams.get("q") ?? "";
 
   const urlFilterValue = searchParams.get("filter");
@@ -199,31 +157,23 @@ export function CandidatesView({
 
   const urlPageValue = searchParams.get("page");
 
-
   const urlFilter: Filter = isValidFilter(urlFilterValue)
     ? urlFilterValue
     : "all";
-
 
   const urlSortKey: SortKey = isValidSortKey(urlSortValue)
     ? urlSortValue
     : "name";
 
-
-  const urlDirection: SortDirection =
-    isValidSortDirection(urlDirectionValue)
-      ? urlDirectionValue
-      : "asc";
-
+  const urlDirection: SortDirection = isValidSortDirection(urlDirectionValue)
+    ? urlDirectionValue
+    : "asc";
 
   const urlPage = getPageFromUrl(urlPageValue);
 
-
   const [query, setQuery] = useState(urlQuery);
 
-  const [selected, setSelected] = useState<Set<number>>(
-    new Set()
-  );
+  const [selected, setSelected] = useState<Set<number>>(new Set());
 
   const [shareOpen, setShareOpen] = useState(false);
 
@@ -238,53 +188,40 @@ export function CandidatesView({
 
   const PAGE_SIZE = 10;
 
-
   function updateUrl(
     updates: Record<string, string | null>,
-    method: "push" | "replace" = "push"
+    method: "push" | "replace" = "push",
   ) {
-    const params = new URLSearchParams(
-      searchParams.toString()
-    );
+    const params = new URLSearchParams(searchParamsRef.current.toString());
 
-    Object.entries(updates).forEach(
-      ([key, value]) => {
-        // null ya empty value hone par parameter remove kar dete hain.
-        if (value === null || value === "") {
-          params.delete(key);
-        } else {
-          params.set(key, value);
-        }
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value === null || value === "") {
+        params.delete(key);
+      } else {
+        params.set(key, value);
       }
-    );
+    });
 
     const queryString = params.toString();
 
-    const nextUrl = queryString ? `?${queryString}` : "";
-
-    const currentUrl = searchParams.toString();
-
+    const currentUrl = searchParamsRef.current.toString();
 
     if (queryString === currentUrl) {
       return;
     }
 
-    // Search ke liye replace aur filter/sort/page ke liye push use hota hai.
+    const nextUrl = queryString ? `${pathname}?${queryString}` : pathname;
+
     if (method === "replace") {
-      router.replace(nextUrl);
+      router.replace(nextUrl, { scroll: false });
     } else {
-      router.push(nextUrl);
+      router.push(nextUrl, { scroll: false });
     }
   }
 
-
- useEffect(() => {
-  const timer = window.setTimeout(() => {
+  useEffect(() => {
     setQuery(urlQuery);
-  }, 0);
-
-  return () => window.clearTimeout(timer);
-}, [urlQuery]);
+  }, [urlQuery]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -294,15 +231,13 @@ export function CandidatesView({
 
           page: null,
         },
-        "replace"
+        "replace",
       );
     }, 300);
 
     return () => window.clearTimeout(timer);
-
   }, [query]);
 
-  // Candidate ko select/unselect karta hai.
   function toggle(id: number) {
     setSelected((prev) => {
       const next = new Set(prev);
@@ -317,97 +252,71 @@ export function CandidatesView({
     });
   }
 
-  // Sort header click hone par URL mein sort change karta hai.
   function handleSort(key: SortKey) {
     let nextDirection: SortDirection;
 
-
     if (sort.key === key) {
-      nextDirection =
-        sort.direction === "asc" ? "desc" : "asc";
+      nextDirection = sort.direction === "asc" ? "desc" : "asc";
     } else {
       nextDirection = "asc";
     }
 
-
-    const isDefaultSort =
-      key === "name" && nextDirection === "asc";
+    const isDefaultSort = key === "name" && nextDirection === "asc";
 
     updateUrl(
       {
         sort: isDefaultSort ? null : key,
         dir: isDefaultSort ? null : nextDirection,
 
-
         page: null,
       },
-      "push"
+      "push",
     );
   }
-
 
   function handleFilterChange(nextFilter: Filter) {
     updateUrl(
       {
-
-        filter:
-          nextFilter === "all" ? null : nextFilter,
-
+        filter: nextFilter === "all" ? null : nextFilter,
 
         page: null,
       },
-      "push"
+      "push",
     );
   }
-
 
   function handlePageChange(nextPage: number) {
     updateUrl(
       {
-
         page: nextPage <= 1 ? null : String(nextPage),
       },
-      "push"
+      "push",
     );
   }
-
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
 
     return candidates.filter((c) => {
-
-      if (
-        filter === "mine" &&
-        c.created_by !== currentUserId
-      ) {
+      if (filter === "mine" && c.created_by !== currentUserId) {
         return false;
       }
-
 
       if (
         filter === "assigned" &&
-        !c.rounds.some(
-          (r) => r.interviewer_id === currentUserId
-        )
+        !c.rounds.some((r) => r.interviewer_id === currentUserId)
       ) {
         return false;
       }
-
 
       if (!q) {
         return true;
       }
 
-
       return (
         c.name.toLowerCase().includes(q) ||
-        (c.applied_role ?? "")
-          .toLowerCase()
-          .includes(q) ||
-        (c.current_company ?? "")
-          .toLowerCase()
-          .includes(q)
+        (c.applied_role ?? "").toLowerCase().includes(q) ||
+        (c.current_company ?? "").toLowerCase().includes(q)
       );
     });
   }, [candidates, query, filter, currentUserId]);
@@ -415,20 +324,11 @@ export function CandidatesView({
   // Filtered candidates ko selected sort ke according arrange karta hai.
   const sorted = useMemo(() => {
     return [...filtered].sort((a, b) =>
-      compareCandidates(
-        a,
-        b,
-        sort.key,
-        sort.direction
-      )
+      compareCandidates(a, b, sort.key, sort.direction),
     );
   }, [filtered, sort]);
 
-
-  const totalPages = Math.max(
-    1,
-    Math.ceil(sorted.length / PAGE_SIZE)
-  );
+  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
 
   // URL mein page 99 ho lekin actual pages 2 ho to page 2 show karega.
   const safePage = Math.min(page, totalPages);
@@ -436,18 +336,11 @@ export function CandidatesView({
   const startIndex = (safePage - 1) * PAGE_SIZE;
 
   // Current page ke candidates.
-  const paginated = sorted.slice(
-    startIndex,
-    startIndex + PAGE_SIZE
-  );
+  const paginated = sorted.slice(startIndex, startIndex + PAGE_SIZE);
 
-  const visibleStart =
-    sorted.length === 0 ? 0 : startIndex + 1;
+  const visibleStart = sorted.length === 0 ? 0 : startIndex + 1;
 
-  const visibleEnd = Math.min(
-    startIndex + PAGE_SIZE,
-    sorted.length
-  );
+  const visibleEnd = Math.min(startIndex + PAGE_SIZE, sorted.length);
 
   const filters: {
     key: Filter;
@@ -491,9 +384,7 @@ export function CandidatesView({
     <div className="mx-auto max-w-6xl px-4 py-6">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">
-            Candidates
-          </h1>
+          <h1 className="text-2xl font-semibold">Candidates</h1>
 
           <p className="text-sm text-muted-foreground">
             {filtered.length} candidate
@@ -522,14 +413,12 @@ export function CandidatesView({
             <button
               key={f.key}
               type="button"
-              onClick={() =>
-                handleFilterChange(f.key)
-              }
+              onClick={() => handleFilterChange(f.key)}
               className={cn(
                 "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
                 filter === f.key
                   ? "bg-accent text-accent-foreground"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               {f.label}
@@ -553,11 +442,7 @@ export function CandidatesView({
           }
           action={
             candidates.length === 0 ? (
-              <AddCandidateDialog
-                trigger={
-                  <Button>Add candidate</Button>
-                }
-              />
+              <AddCandidateDialog trigger={<Button>Add candidate</Button>} />
             ) : undefined
           }
         />
@@ -573,22 +458,16 @@ export function CandidatesView({
                     aria-label="Select all"
                     checked={
                       filtered.length > 0 &&
-                      filtered.every((c) =>
-                        selected.has(c.id)
-                      )
+                      filtered.every((c) => selected.has(c.id))
                     }
                     onChange={(e) => {
                       setSelected((prev) => {
                         const next = new Set(prev);
 
                         if (e.target.checked) {
-                          filtered.forEach((c) =>
-                            next.add(c.id)
-                          );
+                          filtered.forEach((c) => next.add(c.id));
                         } else {
-                          filtered.forEach((c) =>
-                            next.delete(c.id)
-                          );
+                          filtered.forEach((c) => next.delete(c.id));
                         }
 
                         return next;
@@ -604,15 +483,11 @@ export function CandidatesView({
                   <button
                     type="button"
                     data-testid="sort-name"
-                    onClick={() =>
-                      handleSort("name")
-                    }
+                    onClick={() => handleSort("name")}
                     className="inline-flex items-center gap-1"
                   >
                     Candidate
-                    <span aria-hidden="true">
-                      {sortIndicator("name")}
-                    </span>
+                    <span aria-hidden="true">{sortIndicator("name")}</span>
                   </button>
                 </TableHead>
 
@@ -627,15 +502,11 @@ export function CandidatesView({
                   <button
                     type="button"
                     data-testid="sort-status"
-                    onClick={() =>
-                      handleSort("status")
-                    }
+                    onClick={() => handleSort("status")}
                     className="inline-flex items-center gap-1"
                   >
                     Status
-                    <span aria-hidden="true">
-                      {sortIndicator("status")}
-                    </span>
+                    <span aria-hidden="true">{sortIndicator("status")}</span>
                   </button>
                 </TableHead>
 
@@ -646,15 +517,11 @@ export function CandidatesView({
                   <button
                     type="button"
                     data-testid="sort-added"
-                    onClick={() =>
-                      handleSort("added")
-                    }
+                    onClick={() => handleSort("added")}
                     className="inline-flex items-center gap-1"
                   >
                     Added
-                    <span aria-hidden="true">
-                      {sortIndicator("added")}
-                    </span>
+                    <span aria-hidden="true">{sortIndicator("added")}</span>
                   </button>
                 </TableHead>
 
@@ -665,31 +532,23 @@ export function CandidatesView({
                   <button
                     type="button"
                     data-testid="sort-score"
-                    onClick={() =>
-                      handleSort("score")
-                    }
+                    onClick={() => handleSort("score")}
                     className="inline-flex items-center gap-1"
                   >
                     Score
-                    <span aria-hidden="true">
-                      {sortIndicator("score")}
-                    </span>
+                    <span aria-hidden="true">{sortIndicator("score")}</span>
                   </button>
                 </TableHead>
               </TableRow>
             </TableHeader>
 
-            <TableBody
-              data-slot="table-body"
-              className="divide-y"
-            >
+            <TableBody className="divide-y">
               {paginated.map((c) => (
                 <TableRow
                   key={c.id}
                   className={cn(
                     "group hover:bg-accent/30",
-                    selected.has(c.id) &&
-                      "bg-primary/5"
+                    selected.has(c.id) && "bg-primary/5",
                   )}
                 >
                   <TableCell className="px-3 py-3">
@@ -698,9 +557,7 @@ export function CandidatesView({
                       className="h-4 w-4 cursor-pointer accent-[var(--primary)]"
                       aria-label={`Select ${c.name}`}
                       checked={selected.has(c.id)}
-                      onChange={() =>
-                        toggle(c.id)
-                      }
+                      onChange={() => toggle(c.id)}
                     />
                   </TableCell>
 
@@ -709,10 +566,7 @@ export function CandidatesView({
                       href={`/candidates/${c.id}`}
                       className="flex items-center gap-3"
                     >
-                      <CandidateAvatar
-                        name={c.name}
-                        size="md"
-                      />
+                      <CandidateAvatar name={c.name} size="md" />
 
                       <div>
                         <div className="font-medium group-hover:underline">
@@ -720,10 +574,7 @@ export function CandidatesView({
                         </div>
 
                         <div className="text-xs text-muted-foreground">
-                          {[
-                            c.applied_role,
-                            c.current_company,
-                          ]
+                          {[c.applied_role, c.current_company]
                             .filter(Boolean)
                             .join(" · ") || "—"}
 
@@ -746,8 +597,7 @@ export function CandidatesView({
                             key={r.id}
                             className="inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-xs"
                             title={`${r.title} · ${
-                              r.interviewer_name ??
-                              "Unassigned"
+                              r.interviewer_name ?? "Unassigned"
                             }`}
                           >
                             <span className="font-medium">
@@ -755,13 +605,9 @@ export function CandidatesView({
                             </span>
 
                             {r.status === "completed" ? (
-                              <ScoreChip
-                                score={r.question_avg}
-                              />
+                              <ScoreChip score={r.question_avg} />
                             ) : (
-                              <RoundStatusBadge
-                                status={r.status}
-                              />
+                              <RoundStatusBadge status={r.status} />
                             )}
                           </span>
                         ))
@@ -777,17 +623,13 @@ export function CandidatesView({
                     <RelativeTime value={c.created_at} />
 
                     {c.created_by_name && (
-                      <div className="text-xs">
-                        by {c.created_by_name}
-                      </div>
+                      <div className="text-xs">by {c.created_by_name}</div>
                     )}
                   </TableCell>
 
                   <TableCell className="px-4 py-3">
                     {candidateScore(c) == null ? (
-                      <span className="text-sm text-muted-foreground">
-                        —
-                      </span>
+                      <span className="text-sm text-muted-foreground">—</span>
                     ) : (
                       <ScoreChip score={candidateScore(c)} />
                     )}
@@ -815,11 +657,7 @@ export function CandidatesView({
               size="sm"
               data-testid="page-prev"
               disabled={safePage === 1}
-              onClick={() =>
-                handlePageChange(
-                  Math.max(1, safePage - 1)
-                )
-              }
+              onClick={() => handlePageChange(Math.max(1, safePage - 1))}
             >
               Previous
             </Button>
@@ -831,12 +669,7 @@ export function CandidatesView({
               data-testid="page-next"
               disabled={safePage >= totalPages}
               onClick={() =>
-                handlePageChange(
-                  Math.min(
-                    totalPages,
-                    safePage + 1
-                  )
-                )
+                handlePageChange(Math.min(totalPages, safePage + 1))
               }
             >
               Next
@@ -852,19 +685,14 @@ export function CandidatesView({
               {selected.size} selected
             </span>
 
-            <Button
-              size="sm"
-              onClick={() => setShareOpen(true)}
-            >
+            <Button size="sm" onClick={() => setShareOpen(true)}>
               <Link2 className="h-4 w-4" />
               Share link
             </Button>
 
             <button
               type="button"
-              onClick={() =>
-                setSelected(new Set())
-              }
+              onClick={() => setSelected(new Set())}
               className="flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground hover:bg-accent hover:text-foreground"
               aria-label="Clear selection"
             >
