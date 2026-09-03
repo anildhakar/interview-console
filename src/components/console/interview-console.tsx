@@ -125,9 +125,6 @@ export function InterviewConsole({
         ).toFixed(1)
       : null;
 
-  // ---- persistence helpers ----
-  // Each returns its promise so `flush()` can await pending saves before we
-  // complete the round (which makes it read-only server-side).
   const { trigger: saveQuestionField, flush: flushQuestionFields } =
     useDebouncedSave((key, value) => {
       const rqId = Number(key.split(":")[1]);
@@ -230,13 +227,19 @@ export function InterviewConsole({
     }
   }
 
-  function setScore(rqId: number, score: number | null) {
-    setAsked((prev) => prev.map((a) => (a.id === rqId ? { ...a, score } : a)));
+  const setScore = useCallback(
+  (rqId: number, score: number | null) => {
+    setAsked((prev) =>
+      prev.map((a) => (a.id === rqId ? { ...a, score } : a)),
+    );
+
     api(`/api/rounds/${round.id}/questions/${rqId}`, {
       method: "PATCH",
       body: JSON.stringify({ score }),
     }).catch((e) => toast.error((e as Error).message));
-  }
+  },
+  [round.id],
+);
 
   useEffect(() => {
     if (readOnly) return;
@@ -296,7 +299,7 @@ export function InterviewConsole({
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [asked, activeQuestionIndex, readOnly]);
+  }, [asked, activeQuestionIndex, readOnly, setScore]);
 
   function setQuestionNotes(rqId: number, notes: string) {
     setAsked((prev) => prev.map((a) => (a.id === rqId ? { ...a, notes } : a)));
