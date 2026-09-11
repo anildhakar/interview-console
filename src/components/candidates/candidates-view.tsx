@@ -37,7 +37,6 @@ type SortState = {
   direction: SortDirection;
 };
 
-// Calculate the average score from completed rounds.
 export function candidateScore(candidate: CandidateSummary): number | null {
   const scores = candidate.rounds
     .filter(
@@ -52,7 +51,6 @@ export function candidateScore(candidate: CandidateSummary): number | null {
   return scores.reduce((sum, score) => sum + score, 0) / scores.length;
 }
 
-// Compare two candidates based on the given sort key and direction.
 export function compareCandidates(
   a: CandidateSummary,
   b: CandidateSummary,
@@ -139,6 +137,7 @@ export function CandidatesView(props: {
   const searchParams = useSearchParams();
 
   const searchParamsRef = useRef(searchParams);
+  const lastWrittenQueryRef = useRef<string | null>(null);
 
   useEffect(() => {
     searchParamsRef.current = searchParams;
@@ -169,16 +168,8 @@ export function CandidatesView(props: {
   const urlPage = getPageFromUrl(urlPageValue);
 
   const [query, setQuery] = useState(urlQuery);
-const [previousUrlQuery, setPreviousUrlQuery] = useState(urlQuery);
-
-if (previousUrlQuery !== urlQuery) {
-  setPreviousUrlQuery(urlQuery);
-  setQuery(urlQuery);
-}
-
-const [selected, setSelected] = useState<Set<number>>(new Set());
-
-const [shareOpen, setShareOpen] = useState(false);
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [shareOpen, setShareOpen] = useState(false);
 
   const filter = urlFilter;
 
@@ -191,53 +182,64 @@ const [shareOpen, setShareOpen] = useState(false);
 
   const PAGE_SIZE = 10;
 
- const updateUrl = useCallback(
-  (
-    updates: Record<string, string | null>,
-    method: "push" | "replace" = "push",
-  ) => {
-    const params = new URLSearchParams(searchParamsRef.current.toString());
+  const updateUrl = useCallback(
+    (
+      updates: Record<string, string | null>,
+      method: "push" | "replace" = "push",
+    ) => {
+      const params = new URLSearchParams(searchParamsRef.current.toString());
 
-    Object.entries(updates).forEach(([key, value]) => {
-      if (value === null || value === "") {
-        params.delete(key);
-      } else {
-        params.set(key, value);
+      Object.entries(updates).forEach(([key, value]) => {
+        if (value === null || value === "") {
+          params.delete(key);
+        } else {
+          params.set(key, value);
+        }
+      });
+
+      const queryString = params.toString();
+      const currentUrl = searchParamsRef.current.toString();
+
+      if (queryString === currentUrl) {
+        return;
       }
-    });
 
-    const queryString = params.toString();
+      const nextUrl = queryString ? `${pathname}?${queryString}` : pathname;
 
-    const currentUrl = searchParamsRef.current.toString();
-
-    if (queryString === currentUrl) {
-      return;
-    }
-
-    const nextUrl = queryString ? `${pathname}?${queryString}` : pathname;
-
-    if (method === "replace") {
-      router.replace(nextUrl, { scroll: false });
-    } else {
-      router.push(nextUrl, { scroll: false });
-    }
-  },
-  [pathname, router],
-);
+      if (method === "replace") {
+        router.replace(nextUrl, { scroll: false });
+      } else {
+        router.push(nextUrl, { scroll: false });
+      }
+    },
+    [pathname, router],
+  );
 
   useEffect(() => {
-  const timer = window.setTimeout(() => {
-    updateUrl(
-      {
-        q: query.trim() ? query.trim() : null,
-        page: null,
-      },
-      "replace",
-    );
-  }, 300);
+    if (lastWrittenQueryRef.current !== urlQuery) {
+      setQuery(urlQuery);
+    }
 
-  return () => window.clearTimeout(timer);
-}, [query, updateUrl]);
+    lastWrittenQueryRef.current = null;
+  }, [urlQuery]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const normalizedQuery = query.trim();
+
+      lastWrittenQueryRef.current = normalizedQuery;
+
+      updateUrl(
+        {
+          q: normalizedQuery || null,
+          page: null,
+        },
+        "replace",
+      );
+    }, 300);
+
+    return () => window.clearTimeout(timer);
+  }, [query, updateUrl]);
 
   function toggle(id: number) {
     setSelected((prev) => {
@@ -268,7 +270,6 @@ const [shareOpen, setShareOpen] = useState(false);
       {
         sort: isDefaultSort ? null : key,
         dir: isDefaultSort ? null : nextDirection,
-
         page: null,
       },
       "push",
@@ -279,7 +280,6 @@ const [shareOpen, setShareOpen] = useState(false);
     updateUrl(
       {
         filter: nextFilter === "all" ? null : nextFilter,
-
         page: null,
       },
       "push",
