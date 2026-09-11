@@ -187,7 +187,6 @@ export function CandidatesView({
   }, [candidates, query, filter, currentUserId]);
 
   const sorted = useMemo(() => {
-    // IMPORTANT: Never mutate candidates or filtered.
     return [...filtered].sort((a, b) =>
       compareCandidates(a, b, sort.key, sort.direction),
     );
