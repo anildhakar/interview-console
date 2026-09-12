@@ -3,10 +3,19 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Search, Users, Link2, X } from "lucide-react";
+
 import type { CandidateSummary } from "@/lib/pipeline";
-import type { Role } from "@/lib/types";
+
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   StatusBadge,
   ScoreChip,
@@ -24,11 +33,9 @@ type Filter = "all" | "mine" | "assigned";
 export function CandidatesView({
   candidates,
   currentUserId,
-  role,
 }: {
   candidates: CandidateSummary[];
   currentUserId: number;
-  role: Role;
 }) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
@@ -47,7 +54,7 @@ export function CandidatesView({
       }
 
       return next;
-    }); 
+    });
   }
 
   const filtered = useMemo(() => {
@@ -74,10 +81,9 @@ export function CandidatesView({
         (c.applied_role ?? "").toLowerCase().includes(q) ||
         (c.current_company ?? "").toLowerCase().includes(q)
       );
-    }); 
+    });
   }, [candidates, query, filter, currentUserId]);
 
-  // The number of selected candidates that are visible in the current filter.
   const visibleSelectedCount = filtered.filter((c) =>
     selected.has(c.id),
   ).length;
@@ -109,8 +115,8 @@ export function CandidatesView({
           <h1 className="text-2xl font-semibold">Candidates</h1>
 
           <p className="text-sm text-muted-foreground">
-            {candidates.length} candidate{candidates.length === 1 ? "" : "s"} in
-            the pipeline
+            {candidates.length} candidate
+            {candidates.length === 1 ? "" : "s"} in the pipeline
           </p>
         </div>
 
@@ -122,6 +128,7 @@ export function CandidatesView({
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
 
           <Input
+            data-testid="search-input"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by name, role or company…"
@@ -133,6 +140,7 @@ export function CandidatesView({
           {filters.map((f) => (
             <button
               key={f.key}
+              type="button"
               onClick={() => setFilter(f.key)}
               className={cn(
                 "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
@@ -170,10 +178,10 @@ export function CandidatesView({
         />
       ) : (
         <div className="overflow-hidden rounded-xl border bg-card">
-          <table className="w-full text-sm">
-            <thead className="border-b bg-muted/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
-              <tr>
-                <th className="w-10 px-3 py-2.5">
+          <Table>
+            <TableHeader className="border-b bg-muted/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
+              <TableRow>
+                <TableHead className="w-10 px-3 py-2.5">
                   <input
                     ref={selectAllRef}
                     data-testid="select-all"
@@ -192,11 +200,9 @@ export function CandidatesView({
                       setSelected((prev) => {
                         const next = new Set(prev);
 
-                        // If some or all visible candidates are selected,(clicking the header checkbox clears the visible ones)
                         if (someVisibleSelected || allVisibleSelected) {
                           filtered.forEach((c) => next.delete(c.id));
                         } else {
-                          // Nothing visible is selected -> select all visible.
                           filtered.forEach((c) => next.add(c.id));
                         }
 
@@ -204,35 +210,36 @@ export function CandidatesView({
                       });
                     }}
                   />
-                </th>
+                </TableHead>
 
-                <th className="px-4 py-2.5 font-medium">
+                <TableHead className="px-4 py-2.5 font-medium">
                   Candidate
-                </th>
+                </TableHead>
 
-                <th className="px-4 py-2.5 font-medium">
+                <TableHead className="px-4 py-2.5 font-medium">
                   Rounds
-                </th>
+                </TableHead>
 
-                <th className="px-4 py-2.5 font-medium">
+                <TableHead className="px-4 py-2.5 font-medium">
                   Status
-                </th>
+                </TableHead>
 
-                <th className="hidden px-4 py-2.5 font-medium md:table-cell">
+                <TableHead className="hidden px-4 py-2.5 font-medium md:table-cell">
                   Added
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+
+            <TableBody className="divide-y">
               {filtered.map((c) => (
-                <tr
+                <TableRow
                   key={c.id}
                   className={cn(
                     "group hover:bg-accent/30",
                     selected.has(c.id) && "bg-primary/5",
                   )}
                 >
-                  <td className="px-3 py-3">
+                  <TableCell className="px-3 py-3">
                     <input
                       type="checkbox"
                       className="h-4 w-4 cursor-pointer accent-[var(--primary)]"
@@ -240,31 +247,33 @@ export function CandidatesView({
                       checked={selected.has(c.id)}
                       onChange={() => toggle(c.id)}
                     />
-                  </td>
-                  <td className="px-4 py-3">
-  <Link
-    href={`/candidates/${c.id}`}
-    className="flex items-center gap-3"
-  >
-    <CandidateAvatar name={c.name} size="sm" />
+                  </TableCell>
 
-    <div>
-      <div className="font-medium group-hover:underline">
-        {c.name}
-      </div>
+                  <TableCell className="px-4 py-3">
+                    <Link
+                      href={`/candidates/${c.id}`}
+                      className="flex items-center gap-3"
+                    >
+                      <CandidateAvatar name={c.name} size="sm" />
 
-      <div className="text-xs text-muted-foreground">
-        {[c.applied_role, c.current_company]
-          .filter(Boolean)
-          .join(" · ") || "—"}
+                      <div>
+                        <div className="font-medium group-hover:underline">
+                          {c.name}
+                        </div>
 
-        {c.experience_years != null &&
-          ` · ${c.experience_years} yr`}
-      </div>
-    </div>
-  </Link>
-</td>
-                  <td className="px-4 py-3">
+                        <div className="text-xs text-muted-foreground">
+                          {[c.applied_role, c.current_company]
+                            .filter(Boolean)
+                            .join(" · ") || "—"}
+
+                          {c.experience_years != null &&
+                            ` · ${c.experience_years} yr`}
+                        </div>
+                      </div>
+                    </Link>
+                  </TableCell>
+
+                  <TableCell className="px-4 py-3">
                     <div className="flex flex-wrap items-center gap-1.5">
                       {c.rounds.length === 0 ? (
                         <span className="text-xs text-muted-foreground">
@@ -275,11 +284,14 @@ export function CandidatesView({
                           <span
                             key={r.id}
                             className="inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-xs"
-                            title={`${r.title} · ${r.interviewer_name ?? "Unassigned"}`}
+                            title={`${r.title} · ${
+                              r.interviewer_name ?? "Unassigned"
+                            }`}
                           >
                             <span className="font-medium">
                               R{r.round_number}
                             </span>
+
                             {r.status === "completed" ? (
                               <ScoreChip score={r.question_avg} />
                             ) : (
@@ -289,27 +301,28 @@ export function CandidatesView({
                         ))
                       )}
                     </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <StatusBadge status={c.status} />
-                  </td>
-<td className="hidden px-4 py-3 text-muted-foreground md:table-cell">
-  <RelativeTime value={c.created_at} />
+                  </TableCell>
 
-  {c.created_by_name && (
-    <div className="text-xs">
-      by {c.created_by_name}
-    </div>
-  )}
-</td>
-                </tr>
+                  <TableCell className="px-4 py-3">
+                    <StatusBadge status={c.status} />
+                  </TableCell>
+
+                  <TableCell className="hidden px-4 py-3 text-muted-foreground md:table-cell">
+                    <RelativeTime value={c.created_at} />
+
+                    {c.created_by_name && (
+                      <div className="text-xs">
+                        by {c.created_by_name}
+                      </div>
+                    )}
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       )}
 
-      {/* Floating selection action bar */}
       {selected.size > 0 && (
         <div className="fixed inset-x-0 bottom-6 z-40 flex justify-center px-4">
           <div className="flex items-center gap-3 rounded-full border bg-card px-4 py-2 shadow-lg">
@@ -330,6 +343,7 @@ export function CandidatesView({
             </Button>
 
             <button
+              type="button"
               onClick={() => setSelected(new Set())}
               className="flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground hover:bg-accent hover:text-foreground"
               aria-label="Clear selection"
