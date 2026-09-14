@@ -31,7 +31,9 @@ export function CandidatesView({
 }) {
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebouncedValue(query, 300);
-  const normalizedQuery = debouncedQuery.trim();
+  const normalizedQuery =
+    query.trim() === "" ? "" : debouncedQuery.trim();
+
   const [filter, setFilter] = useState<Filter>("all");
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [shareOpen, setShareOpen] = useState(false);
@@ -54,7 +56,9 @@ export function CandidatesView({
     const q = normalizedQuery.toLowerCase();
 
     return candidates.filter((c) => {
-      if (filter === "mine" && c.created_by !== currentUserId) return false;
+      if (filter === "mine" && c.created_by !== currentUserId) {
+        return false;
+      }
 
       if (
         filter === "assigned" &&
@@ -185,6 +189,7 @@ export function CandidatesView({
                 </th>
               </tr>
             </thead>
+
             <tbody data-slot="table-body" className="divide-y">
               {filtered.map((c) => (
                 <tr
@@ -203,6 +208,7 @@ export function CandidatesView({
                       onChange={() => toggle(c.id)}
                     />
                   </td>
+
                   <td className="px-4 py-3">
                     <Link
                       href={`/candidates/${c.id}`}
@@ -212,7 +218,10 @@ export function CandidatesView({
 
                       <div>
                         <div className="font-medium group-hover:underline">
-                          <Highlight text={c.name} query={normalizedQuery} />
+                          <Highlight
+                            text={c.name}
+                            query={normalizedQuery}
+                          />
                         </div>
 
                         <div className="text-xs text-muted-foreground">
@@ -226,6 +235,7 @@ export function CandidatesView({
                       </div>
                     </Link>
                   </td>
+
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap items-center gap-1.5">
                       {c.rounds.length === 0 ? (
@@ -242,6 +252,7 @@ export function CandidatesView({
                             <span className="font-medium">
                               R{r.round_number}
                             </span>
+
                             {r.status === "completed" ? (
                               <ScoreChip score={r.question_avg} />
                             ) : (
@@ -252,14 +263,18 @@ export function CandidatesView({
                       )}
                     </div>
                   </td>
+
                   <td className="px-4 py-3">
                     <StatusBadge status={c.status} />
                   </td>
+
                   <td className="hidden px-4 py-3 text-muted-foreground md:table-cell">
                     <RelativeTime value={c.created_at} />
 
                     {c.created_by_name && (
-                      <div className="text-xs">by {c.created_by_name}</div>
+                      <div className="text-xs">
+                        by {c.created_by_name}
+                      </div>
                     )}
                   </td>
                 </tr>
@@ -269,7 +284,6 @@ export function CandidatesView({
         </div>
       )}
 
-      {/* Floating selection action bar */}
       {selected.size > 0 && (
         <div className="fixed inset-x-0 bottom-6 z-40 flex justify-center px-4">
           <div className="flex items-center gap-3 rounded-full border bg-card px-4 py-2 shadow-lg">
